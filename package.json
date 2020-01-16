@@ -1,0 +1,27 @@
+{
+  "name": "weath",
+  "version": "1.0.0",
+  "description": "get that weath",
+  "main": "index.js",
+  "dependencies": {
+    "next": "^9.1.5",
+    "react-dom": "^16.12.0",
+    "react": "^16.12.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexodle/vitamind.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexodle/vitamind/issues"
+  },
+  "homepage": "https://github.com/alexodle/vitamind#readme"
+}
