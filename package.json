@@ -4,11 +4,16 @@
   "description": "get that weath",
   "main": "index.js",
   "dependencies": {
+    "isomorphic-unfetch": "^3.0.0",
     "next": "^9.1.5",
-    "react-dom": "^16.12.0",
-    "react": "^16.12.0"
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node": "^13.1.7",
+    "@types/react": "^16.9.17",
+    "typescript": "^3.7.2"
+  },
   "scripts": {
     "dev": "next",
     "build": "next build",

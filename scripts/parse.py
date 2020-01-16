@@ -38,7 +38,7 @@ def combine_daily(fcs):
         'minfeel': minfeel,
         'maxfeel': maxfeel,
         'cloudcover': cloudcover,
-        'rain_pct': rain_pct,
+        'rainpct': rain_pct,
     }
 
 
