@@ -1,5 +1,7 @@
 import { NextPage } from 'next'
 import fetch from 'isomorphic-unfetch'
+import { EvaluatedForecast } from '../scripts/src/types'
+import { Fragment } from 'react'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 function friendlyDay(day: number): string {
@@ -23,49 +25,71 @@ function renderTemp(temp: number) {
   return `${Math.round(temp)}\u00B0F`
 }
 
-interface DailyForecast {
-  min: number
-  max: number
-  maxfeel: number
-  minfeel: number
-  cloudcover: number
-  rainpct: number
-}
-
-interface Forecast {
-  city: string
-  results: [Date, DailyForecast][]
-}
-
 interface IndexProps {
-  forecasts: Forecast[]
+  forecasts: EvaluatedForecast[]
 }
 
-function normalizeWeathResults(its: Forecast[]): Forecast[] {
+function normalizeWeathResults(its: EvaluatedForecast[]): EvaluatedForecast[] {
   its.forEach(f => {
     f.results = f.results.map(([d, df]) => [new Date(d as any as string), df])
   })
   return its
 }
 
-const Index: NextPage<IndexProps> = ({ forecasts }) => {
-  forecasts = normalizeWeathResults(forecasts)
+function partitionRecommendations(fcs: EvaluatedForecast[]): [EvaluatedForecast[], EvaluatedForecast[]] {
+  const recommended: EvaluatedForecast[] = []
+  const notRecommended: EvaluatedForecast[] = []
+  fcs.forEach(fc => {
+    if (fc.recommended) recommended.push(fc)
+    else notRecommended.push(fc)
+  })
+  return [recommended, notRecommended]
+}
+
+function renderForecasts(fcs: EvaluatedForecast[]) {
   return (
     <div>
-      {forecasts.map((f: Forecast) => (
-        <div key={f.city}>
-          <h2>{f.city}</h2>
+      {fcs.map((f: EvaluatedForecast) => (
+        <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
+          <h3>{f.city}</h3>
           {f.results.map(([date, df]) => {
             return (
-              <p key={date.getDate()}>
-                <b>{friendlyDay(date.getDay())}</b>:{"  "}{friendlyRaininess(df.rainpct) || friendlyCloudCover(df.cloudcover)} with a high of {renderTemp(df.max)}
+              <p key={date.getDate()} className={"daily-forecast" + (df.isGoodDay ? " good-day" : "")}>
+                {friendlyDay(date.getDay())}:{"  "}{friendlyRaininess(df.rainpct) || friendlyCloudCover(df.cloudcover)} with a high of {renderTemp(df.max)}
               </p>
             )
           })}
-          <br />
-          <br />
         </div>
       ))}
+      <style jsx>{`
+      .city-forecast {
+        margin-bottom: 20px;
+      }
+
+      .daily-forecast.good-day {
+        font-weight: bold;
+        background-color: #98FB98;
+      }
+      `}</style>
+    </div>
+  )
+}
+
+const Index: NextPage<IndexProps> = ({ forecasts }) => {
+  forecasts = normalizeWeathResults(forecasts)
+
+  const [recommended, notRecommended] = partitionRecommendations(forecasts)
+  return (
+    <div>
+      <h2>Recommended</h2>
+      {!recommended.length ? <p>:(</p> : renderForecasts(recommended)}
+      {!notRecommended.length ? null : (
+        <Fragment>
+          <br />
+          <h2>Not recommended</h2>
+          {renderForecasts(notRecommended)}
+        </Fragment>
+      )}
     </div>
   )
 }
