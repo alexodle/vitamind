@@ -1,32 +1,26 @@
 import { NextPage } from 'next'
 import fetch from 'isomorphic-unfetch'
-import { EvaluatedForecast } from '../src/types'
+import { EvaluatedForecast, DailyForecast, EvaluatedDailyForecast } from '../src/types'
 import { Fragment } from 'react'
+
+const IMG_SRC = 'imgs'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 function friendlyDay(day: number): string {
   return DAYS[day]
 }
 
-function friendlyCloudCover(cloudCover: number): string {
-  if (cloudCover < 25.0) return 'Sunny'
-  if (cloudCover < 75.0) return 'Partly sunny'
-  return 'Cloudy'
-}
-
-function friendlyRaininess(rainPct: number): string | null {
-  if (rainPct < 5.0) return null
-  if (rainPct < 25.0) return 'Patchy rain'
-  if (rainPct < 50.0) return 'Showers'
-  return 'Rain'
+function getWeatherImg(df: DailyForecast): [string, string] {
+  if (df.rainpct > 25) {
+    return [`rain_s_cloudy.png`, 'Rainy']
+  } else if (df.cloudcover > 25) {
+    return [`partly_cloudy.png`, 'Partly cloudy']
+  }
+  return [`sunny.png`, 'Sunny']
 }
 
 function renderTemp(temp: number) {
   return `${Math.round(temp)}\u00B0F`
-}
-
-interface IndexProps {
-  forecasts: EvaluatedForecast[]
 }
 
 function normalizeWeathResults(its: EvaluatedForecast[]): EvaluatedForecast[] {
@@ -46,33 +40,63 @@ function partitionRecommendations(fcs: EvaluatedForecast[]): [EvaluatedForecast[
   return [recommended, notRecommended]
 }
 
-function renderForecasts(fcs: EvaluatedForecast[]) {
+function renderForecastDay(df: EvaluatedDailyForecast): JSX.Element {
+  const [img, alt] = getWeatherImg(df)
   return (
     <div>
-      {fcs.map((f: EvaluatedForecast) => (
-        <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
-          <h3>{f.city}</h3>
+      <h4 className={"daily-forecast" + (df.isGoodDay ? " good-day" : "")}>{friendlyDay((df.date as Date).getDay())}</h4>
+      <img className='weather-icon' src={`${IMG_SRC}/${img}`} alt={alt} /> {renderTemp(df.maxtemp)}
+      <style jsx>{`
+        .weather-icon {
+          width: '64px';
+          height: '64px';
+        }
+        .daily-forecast.good-day {
+          background-color: #98FB98;
+        }
+      `}</style>
+    </div>
+  )
+}
+
+const renderForecasts = (fcs: EvaluatedForecast[]): JSX.Element => (
+  <div>
+    {fcs.map((f: EvaluatedForecast) => (
+      <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
+        <h3>{f.city}</h3>
+        <ol className='daily-forecast-list'>
           {f.results.map(df => {
             return (
-              <p key={(df.date as Date).getDate()} className={"daily-forecast" + (df.isGoodDay ? " good-day" : "")}>
-                {friendlyDay((df.date as Date).getDay())}:{"  "}{friendlyRaininess(df.rainpct) || friendlyCloudCover(df.cloudcover)} with a high of {renderTemp(df.maxtemp)}
-              </p>
+              <li key={(df.date as Date).getDate()}>
+                {renderForecastDay(df)}
+              </li>
             )
           })}
-        </div>
-      ))}
-      <style jsx>{`
+        </ol>
+      </div>
+    ))}
+    <style jsx>{`
       .city-forecast {
         margin-bottom: 20px;
       }
 
-      .daily-forecast.good-day {
-        font-weight: bold;
-        background-color: #98FB98;
+      .city-forecast h3 {
       }
-      `}</style>
-    </div>
-  )
+
+      .daily-forecast-list {
+      }
+
+      .daily-forecast-list li {
+        display: inline-block;
+        margin-right: 40px;
+      }
+    `}</style>
+  </div>
+)
+
+
+interface IndexProps {
+  forecasts: EvaluatedForecast[]
 }
 
 const Index: NextPage<IndexProps> = ({ forecasts }) => {
