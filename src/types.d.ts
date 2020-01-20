@@ -1,6 +1,7 @@
 export interface DailyForecast {
-  min: number
-  max: number
+  date: Date | string
+  mintemp: number
+  maxtemp: number
   maxfeel: number
   minfeel: number
   cloudcover: number
@@ -9,7 +10,7 @@ export interface DailyForecast {
 
 export interface Forecast {
   city: string
-  results: [Date, DailyForecast][]
+  results: DailyForecast[]
 }
 
 export interface EvaluatedDailyForecast extends DailyForecast {
@@ -17,7 +18,7 @@ export interface EvaluatedDailyForecast extends DailyForecast {
 }
 
 export interface EvaluatedForecast extends Omit<Forecast, 'results'> {
-  results: [Date, EvaluatedDailyForecast][]
+  results: EvaluatedDailyForecast[]
   recommended: boolean
   maxConsecutiveGoodDays: number
 }

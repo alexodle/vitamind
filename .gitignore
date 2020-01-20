@@ -1,4 +1,5 @@
 *.env
-out/
+data/forecasts/
+data/raw/
 node_modules/
 .next/

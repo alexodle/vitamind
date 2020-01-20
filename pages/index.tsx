@@ -1,6 +1,6 @@
 import { NextPage } from 'next'
 import fetch from 'isomorphic-unfetch'
-import { EvaluatedForecast } from '../scripts/src/types'
+import { EvaluatedForecast } from '../src/types'
 import { Fragment } from 'react'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -31,7 +31,7 @@ interface IndexProps {
 
 function normalizeWeathResults(its: EvaluatedForecast[]): EvaluatedForecast[] {
   its.forEach(f => {
-    f.results = f.results.map(([d, df]) => [new Date(d as any as string), df])
+    f.results.forEach(df => { df.date = new Date(df.date) })
   })
   return its
 }
@@ -52,10 +52,10 @@ function renderForecasts(fcs: EvaluatedForecast[]) {
       {fcs.map((f: EvaluatedForecast) => (
         <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
           <h3>{f.city}</h3>
-          {f.results.map(([date, df]) => {
+          {f.results.map(df => {
             return (
-              <p key={date.getDate()} className={"daily-forecast" + (df.isGoodDay ? " good-day" : "")}>
-                {friendlyDay(date.getDay())}:{"  "}{friendlyRaininess(df.rainpct) || friendlyCloudCover(df.cloudcover)} with a high of {renderTemp(df.max)}
+              <p key={(df.date as Date).getDate()} className={"daily-forecast" + (df.isGoodDay ? " good-day" : "")}>
+                {friendlyDay((df.date as Date).getDay())}:{"  "}{friendlyRaininess(df.rainpct) || friendlyCloudCover(df.cloudcover)} with a high of {renderTemp(df.maxtemp)}
               </p>
             )
           })}

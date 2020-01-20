@@ -1,20 +1,18 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { promises as fsPromises } from 'fs';
-import path from 'path';
-import { Forecast, EvaluatedForecast, DailyForecast } from "../../scripts/src/types";
 import { sortBy } from 'lodash';
+import { NextApiRequest, NextApiResponse } from "next";
+import path from 'path';
+import { DailyForecast, EvaluatedDailyForecast, EvaluatedForecast, Forecast } from "../../src/types";
 
-const DIR = './scripts/out/parsed'
+const TMPTMP_DATA_DIR = './data/forecasts'
 
-function isGoodDay(df: DailyForecast): boolean {
-  return df.rainpct < 5.0 && df.cloudcover < 100.0 && df.max >= 65.0
-}
+const isGoodDay = (df: DailyForecast) => df.rainpct < 20.0 && df.cloudcover < 100.0 && df.maxtemp >= 67.0
 
-function maxConsecutiveGoodDays(fc: Forecast): number {
+function maxConsecutiveGoodDays(dfs: EvaluatedDailyForecast[]): number {
   let max = 0
   let curr = 0
-  fc.results.forEach(([_date, df]) => {
-    if (isGoodDay(df)) {
+  dfs.forEach(df => {
+    if (df.isGoodDay) {
       curr += 1
       if (curr > max) {
         max = curr
@@ -28,10 +26,11 @@ function maxConsecutiveGoodDays(fc: Forecast): number {
 
 function evaluateForecasts(forecasts: Forecast[]): EvaluatedForecast[] {
   const evaled: EvaluatedForecast[] = forecasts.map(fc => {
-    const maxConsecutive = maxConsecutiveGoodDays(fc)
+    const evaledDfs = fc.results.map(df => ({ ...df, isGoodDay: isGoodDay(df) }))
+    const maxConsecutive = maxConsecutiveGoodDays(evaledDfs)
     return {
       ...fc,
-      results: fc.results.map(([date, df]) => [date, { ...df, isGoodDay: isGoodDay(df) }]),
+      results: evaledDfs,
       maxConsecutiveGoodDays: maxConsecutive,
       recommended: maxConsecutive > 1,
     }
@@ -40,13 +39,13 @@ function evaluateForecasts(forecasts: Forecast[]): EvaluatedForecast[] {
   return sorted
 }
 
-export default async function (req: NextApiRequest, res: NextApiResponse) {
+export default async function (_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const files = await fsPromises.readdir(DIR)
-    const strContents = await Promise.all(files.map(f => fsPromises.readFile(path.join(DIR, f))))
-    const contents = strContents.map(s => JSON.parse(s as any as string))
-    const evaluated = evaluateForecasts(contents)
-    res.status(200).send({ forecasts: evaluated })
+    const files = await fsPromises.readdir(TMPTMP_DATA_DIR)
+    const strContents = await Promise.all(files.map(f => fsPromises.readFile(path.join(TMPTMP_DATA_DIR, f))))
+    const contents: Forecast[] = strContents.map(s => JSON.parse(s as any as string))
+    const forecasts = evaluateForecasts(contents)
+    res.status(200).send({ forecasts })
   } catch (e) {
     console.error(e.stack)
     res.status(500).send({ error: e })
