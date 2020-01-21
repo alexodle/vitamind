@@ -9,5 +9,5 @@ echo "downloading weather from darksky"
 python $BASEDIR/darksky_client.py $DATADIR/raw
 
 echo "processing weather"
-python $BASEDIR/process_darksky.py $DATADIR/raw $DATADIR/forecasts
+python $BASEDIR/darksky_transform.py $DATADIR/raw $DATADIR/forecasts
 python $BASEDIR/evaluate_weath.py $DATADIR/forecasts $DATADIR/evaluated

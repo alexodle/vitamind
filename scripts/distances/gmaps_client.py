@@ -55,9 +55,13 @@ def wget_all(cities, outd):
         fname = '%s.json' % origin[0].replace(' ', '_')
         ofp = os.path.join(outd, fname)
         print 'QUERY: origin: %s, nDestinations: %s, fp: %s' % (origin[0], len(destinations), ofp)
-        result = request_distances([origin], destinations)
+        results = request_distances([origin], destinations)
         with open(ofp, 'w+') as f:
-            json.dump(result, f)
+            json.dump({
+                'origin_city': origin[0],
+                'dest_cities': [city for city, _, _ in destinations],
+                'results': results,
+            }, f)
 
 
 def read_cities(fp):

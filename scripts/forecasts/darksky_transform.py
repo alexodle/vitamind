@@ -6,12 +6,16 @@ import json
 import os
 
 
-def process_darksky_forecast(data):
+def transform_darksky_forecast(data):
     raw = data['daily']['data']
     forecasts = []
+    min_date = date.today()
     for it in raw:
+        fc_date = date.fromtimestamp(it['time'])
+        if fc_date < min_date:
+            continue
         forecasts.append({
-            'date': date.fromtimestamp(it['time']).isoformat(),
+            'date': fc_date.isoformat(),
             'mintemp': it['temperatureLow'],
             'maxtemp': it['temperatureHigh'],
             'minfeel': it['apparentTemperatureLow'],
@@ -30,6 +34,6 @@ if __name__ == '__main__':
         outfp = os.path.join(outd, fn)
         with open(infp, 'r+') as f:
             j = json.load(f)
-        processed = process_darksky_forecast(j['results'])
+        processed = transform_darksky_forecast(j['results'])
         with open(outfp, 'w+') as f:
             json.dump({'city': j['city'], 'results': processed}, f)
