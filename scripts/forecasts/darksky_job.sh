@@ -3,7 +3,7 @@
 set -euf -o pipefail
 
 BASEDIR=$(dirname "$0")
-DATADIR=$BASEDIR/../data
+DATADIR=$BASEDIR/../../data/forecasts
 
 echo "downloading weather from darksky"
 python $BASEDIR/darksky_client.py $DATADIR/raw

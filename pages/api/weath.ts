@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import path from 'path';
 import { EvaluatedForecast } from "../../src/types";
 
-const TMPTMP_DATA_DIR = './data/evaluated'
+const TMPTMP_DATA_DIR = './data/forecasts/evaluated'
 
 export default async function (_req: NextApiRequest, res: NextApiResponse) {
   try {

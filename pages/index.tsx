@@ -43,13 +43,25 @@ function partitionRecommendations(fcs: EvaluatedForecast[]): [EvaluatedForecast[
 function renderForecastDay(df: EvaluatedDailyForecast): JSX.Element {
   const [img, alt] = getWeatherImg(df)
   return (
-    <div>
+    <div className='daily-forecast-container'>
       <h4 className={"daily-forecast" + (df.isGoodDay ? " good-day" : "")}>{friendlyDay((df.date as Date).getDay())}</h4>
       <img className='weather-icon' src={`${IMG_SRC}/${img}`} alt={alt} /> {renderTemp(df.maxtemp)}
       <style jsx>{`
+        h4 {
+          padding-top: 0px;
+          margin-top: 0px;
+        }
+        .daily-forecast-container {
+          border: gray 1px solid;
+          border-radius: 10px;
+          padding: 10px;
+        }
         .weather-icon {
-          width: '64px';
-          height: '64px';
+          width: 64px;
+          height: 64px;
+        }
+        .daily-forecast {
+          text-align: center;
         }
         .daily-forecast.good-day {
           background-color: #98FB98;
@@ -82,7 +94,7 @@ const renderForecasts = (fcs: EvaluatedForecast[]): JSX.Element => (
 
       .daily-forecast-list li {
         display: inline-block;
-        margin-right: 40px;
+        margin-right: 20px;
       }
     `}</style>
   </div>

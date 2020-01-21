@@ -39,6 +39,6 @@ def read_cities(fp):
 
 if __name__ == '__main__':
     outd = sys.argv[1]
-    cities = read_cities('../data/latlon.csv')
+    cities = read_cities('../../latlon.csv')
     for city, lat, lon in cities:
         wget(city, lat, lon, outd)

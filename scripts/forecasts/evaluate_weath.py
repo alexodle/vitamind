@@ -27,6 +27,8 @@ def max_consecutive_good_days(dfs):
 
 
 def evaluate_fc(fc):
+  #limit to 6 days (accurracy)
+  fc['results'] = fc['results'][:6]
   evaluate_days(fc['results'])
   goodness = max_consecutive_good_days(fc['results'])
   fc['maxConsecutiveGoodDays'] = goodness

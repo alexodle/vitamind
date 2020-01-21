@@ -1,7 +1,5 @@
 .DS_Store
 *.env
-data/forecasts/
-data/raw/
-data/evaluated/
+data/
 node_modules/
 .next/
