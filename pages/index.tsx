@@ -1,7 +1,7 @@
-import { NextPage } from 'next'
 import fetch from 'isomorphic-unfetch'
-import { EvaluatedForecast, DailyForecast, EvaluatedDailyForecast } from '../src/types'
+import { NextPage } from 'next'
 import { Fragment } from 'react'
+import { EvaluatedDailyForecast, EvaluatedForecast } from '../src/types'
 
 const IMG_SRC = 'imgs'
 
@@ -10,7 +10,7 @@ function friendlyDay(day: number): string {
   return DAYS[day]
 }
 
-function getWeatherImg(df: DailyForecast): [string, string] {
+function getWeatherImg(df: EvaluatedDailyForecast): [string, string] {
   if (df.rainpct > 25) {
     return [`rain_s_cloudy.png`, 'Rainy']
   } else if (df.cloudcover > 25) {
@@ -78,12 +78,6 @@ const renderForecasts = (fcs: EvaluatedForecast[]): JSX.Element => (
     <style jsx>{`
       .city-forecast {
         margin-bottom: 20px;
-      }
-
-      .city-forecast h3 {
-      }
-
-      .daily-forecast-list {
       }
 
       .daily-forecast-list li {

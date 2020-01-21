@@ -1,4 +1,4 @@
-export interface DailyForecast {
+export interface EvaluatedDailyForecast extends DailyForecast {
   date: Date | string
   mintemp: number
   maxtemp: number
@@ -6,18 +6,11 @@ export interface DailyForecast {
   minfeel: number
   cloudcover: number
   rainpct: number
-}
-
-export interface Forecast {
-  city: string
-  results: DailyForecast[]
-}
-
-export interface EvaluatedDailyForecast extends DailyForecast {
   isGoodDay: boolean
 }
 
-export interface EvaluatedForecast extends Omit<Forecast, 'results'> {
+export interface EvaluatedForecast {
+  city: string
   results: EvaluatedDailyForecast[]
   recommended: boolean
   maxConsecutiveGoodDays: number

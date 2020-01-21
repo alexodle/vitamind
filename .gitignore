@@ -2,5 +2,6 @@
 *.env
 data/forecasts/
 data/raw/
+data/evaluated/
 node_modules/
 .next/
