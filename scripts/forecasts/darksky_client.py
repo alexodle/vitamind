@@ -1,7 +1,6 @@
 #!/bin/python
 
 import requests
-from collections import defaultdict
 from datetime import date
 import sys
 import os
@@ -21,10 +20,11 @@ def get_weath(lat, lon):
 
 
 def wget(city, lat, lon, outd):
+    today = date.today()
     result = get_weath(lat, lon)
     fp = os.path.join(outd, city.replace(' ', '_') + '.json')
     with open(fp, 'w+') as f:
-        json.dump({'city': city, 'results': result}, f)
+        json.dump({'city': city, 'date': today.isoformat(), 'results': result}, f)
 
 
 def read_cities(fp):
