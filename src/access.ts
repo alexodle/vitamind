@@ -73,7 +73,7 @@ export async function getRecommendationsForCity(targetCityID: number, radiusDriv
     FROM processed_forecast pf
     JOIN city ON city.id = pf.city_id
     JOIN city_travel_time ctt ON (ctt.citya_id = $2 AND ctt.cityb_id = pf.city_id) OR (ctt.cityb_id = $2 AND ctt.citya_id = pf.city_id)
-    WHERE date_forecasted = $1 AND ctt.gmap_drive_time_minutes <= $3
+    WHERE date_forecasted = $1 AND is_recommended = TRUE AND ctt.gmap_drive_time_minutes <= $3
     ORDER BY ctt.gmap_drive_time_minutes ASC
     LIMIT $4;
   `, [dateForecasted, targetCityID, radiusDriveHours * 60, limit])

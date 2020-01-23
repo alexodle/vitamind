@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-unfetch'
-import { NextPage } from 'next'
+import { NextPage, NextPageContext } from 'next'
 import { Fragment } from 'react'
 import { ProcessedDailyForecast, ProcessedForecast } from '../src/types'
 
@@ -28,16 +28,6 @@ function normalizeWeathResults(its: ProcessedForecast[]): ProcessedForecast[] {
     f.results.forEach(df => { df.date = new Date(df.date) })
   })
   return its
-}
-
-function partitionRecommendations(fcs: ProcessedForecast[]): [ProcessedForecast[], ProcessedForecast[]] {
-  const recommended: ProcessedForecast[] = []
-  const notRecommended: ProcessedForecast[] = []
-  fcs.forEach(fc => {
-    if (fc.recommended) recommended.push(fc)
-    else notRecommended.push(fc)
-  })
-  return [recommended, notRecommended]
 }
 
 function renderForecastDay(df: ProcessedDailyForecast): JSX.Element {
@@ -103,32 +93,46 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
 
 interface IndexProps {
   forecasts: ProcessedForecast[]
+  driveHours: number
 }
 
-const Index: NextPage<IndexProps> = ({ forecasts }) => {
+const Index: NextPage<IndexProps> = ({ forecasts, driveHours }) => {
   forecasts = normalizeWeathResults(forecasts)
-
-  const [recommended, notRecommended] = partitionRecommendations(forecasts)
   return (
     <div>
-      <h2>Recommended</h2>
-      {!recommended.length ? <p>:(</p> : renderForecasts(recommended)}
-      {!notRecommended.length ? null : (
+      {!forecasts.length ? (<span className='sad-face'>:(</span>) : (
         <Fragment>
-          <br />
-          <h2>Not recommended</h2>
-          {renderForecasts(notRecommended)}
+          <h2>Roadtrips (within {driveHours} hours drive)</h2>
+          {renderForecasts(forecasts)}
         </Fragment>
       )}
+      <style jsx>{`
+        .sad-face {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          font-size: 20em;
+          transform: translate(-50%, -50%);
+        }
+      `}</style>
     </div>
   )
 }
 
+const DEFAULT_DRIVE_TIME = 8
+function safeGetDriveHours(ctx: NextPageContext): number {
+  try {
+    return ctx.query.driveHours ? parseInt(ctx.query.driveHours as string, 10) : DEFAULT_DRIVE_TIME
+  } catch {
+    return DEFAULT_DRIVE_TIME
+  }
+}
+
 Index.getInitialProps = async (ctx): Promise<IndexProps> => {
-  const driveHours = ctx.query.driveHours ? parseInt(ctx.query.driveHours as string, 10) : 8
+  const driveHours = safeGetDriveHours(ctx)
   const res = await fetch(`http://localhost:3000/api/weath?driveHours=${driveHours}`)
   const json = await res.json()
-  return { forecasts: json.forecasts }
+  return { forecasts: json.forecasts, driveHours }
 }
 
 export default Index
