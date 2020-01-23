@@ -14,4 +14,10 @@ export interface ProcessedForecast {
   results: ProcessedDailyForecast[]
   recommended: boolean
   maxConsecutiveGoodDays: number
+  driveTimeMinutes: number
+}
+
+export interface City {
+  id: number
+  name: string
 }

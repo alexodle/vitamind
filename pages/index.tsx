@@ -75,7 +75,7 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
   <div>
     {fcs.map((f: ProcessedForecast) => (
       <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
-        <h3>{f.city}</h3>
+        <h3>{f.city} ({Math.floor(f.driveTimeMinutes / 60)} hours)</h3>
         <ol className='daily-forecast-list'>
           {f.results.map(df => {
             return (
@@ -124,8 +124,9 @@ const Index: NextPage<IndexProps> = ({ forecasts }) => {
   )
 }
 
-Index.getInitialProps = async (): Promise<IndexProps> => {
-  const res = await fetch('http://localhost:3000/api/weath')
+Index.getInitialProps = async (ctx): Promise<IndexProps> => {
+  const driveHours = ctx.query.driveHours ? parseInt(ctx.query.driveHours as string, 10) : 8
+  const res = await fetch(`http://localhost:3000/api/weath?driveHours=${driveHours}`)
   const json = await res.json()
   return { forecasts: json.forecasts }
 }
