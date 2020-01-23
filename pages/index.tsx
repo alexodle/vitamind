@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
 import { Fragment } from 'react'
-import { EvaluatedDailyForecast, EvaluatedForecast } from '../src/types'
+import { ProcessedDailyForecast, ProcessedForecast } from '../src/types'
 
 const IMG_SRC = 'imgs'
 
@@ -10,7 +10,7 @@ function friendlyDay(day: number): string {
   return DAYS[day]
 }
 
-function getWeatherImg(df: EvaluatedDailyForecast): [string, string] {
+function getWeatherImg(df: ProcessedDailyForecast): [string, string] {
   if (df.rainpct > 25) {
     return [`rain_s_cloudy.png`, 'Rainy']
   } else if (df.cloudcover > 25) {
@@ -23,16 +23,16 @@ function renderTemp(temp: number) {
   return `${Math.round(temp)}\u00B0F`
 }
 
-function normalizeWeathResults(its: EvaluatedForecast[]): EvaluatedForecast[] {
+function normalizeWeathResults(its: ProcessedForecast[]): ProcessedForecast[] {
   its.forEach(f => {
     f.results.forEach(df => { df.date = new Date(df.date) })
   })
   return its
 }
 
-function partitionRecommendations(fcs: EvaluatedForecast[]): [EvaluatedForecast[], EvaluatedForecast[]] {
-  const recommended: EvaluatedForecast[] = []
-  const notRecommended: EvaluatedForecast[] = []
+function partitionRecommendations(fcs: ProcessedForecast[]): [ProcessedForecast[], ProcessedForecast[]] {
+  const recommended: ProcessedForecast[] = []
+  const notRecommended: ProcessedForecast[] = []
   fcs.forEach(fc => {
     if (fc.recommended) recommended.push(fc)
     else notRecommended.push(fc)
@@ -40,7 +40,7 @@ function partitionRecommendations(fcs: EvaluatedForecast[]): [EvaluatedForecast[
   return [recommended, notRecommended]
 }
 
-function renderForecastDay(df: EvaluatedDailyForecast): JSX.Element {
+function renderForecastDay(df: ProcessedDailyForecast): JSX.Element {
   const [img, alt] = getWeatherImg(df)
   return (
     <div className='daily-forecast-container'>
@@ -71,9 +71,9 @@ function renderForecastDay(df: EvaluatedDailyForecast): JSX.Element {
   )
 }
 
-const renderForecasts = (fcs: EvaluatedForecast[]): JSX.Element => (
+const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
   <div>
-    {fcs.map((f: EvaluatedForecast) => (
+    {fcs.map((f: ProcessedForecast) => (
       <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
         <h3>{f.city}</h3>
         <ol className='daily-forecast-list'>
@@ -102,7 +102,7 @@ const renderForecasts = (fcs: EvaluatedForecast[]): JSX.Element => (
 
 
 interface IndexProps {
-  forecasts: EvaluatedForecast[]
+  forecasts: ProcessedForecast[]
 }
 
 const Index: NextPage<IndexProps> = ({ forecasts }) => {
