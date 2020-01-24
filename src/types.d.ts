@@ -21,3 +21,11 @@ export interface City {
   id: number
   name: string
 }
+
+// API
+
+export interface WeathResult {
+  forecasts: ProcessedForecast[]
+  city: City
+  driveHours: number
+}

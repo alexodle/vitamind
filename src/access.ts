@@ -24,10 +24,10 @@ async function getLatestForecastDate(): Promise<Date> {
   return dateForecasted
 }
 
-export async function getCityByName(name: string): Promise<City | null> {
-  const targetCityResults = await pool.query(`SELECT * FROM city WHERE name = $1`, [name])
+export async function getCity(id: number): Promise<City | null> {
+  const targetCityResults = await pool.query(`SELECT id, name FROM city WHERE id = $1`, [id])
   if (targetCityResults.rowCount < 1) return null
-  return targetCityResults.rows[0] as City
+  return targetCityResults.rows[0]
 }
 
 export async function buildProcessedForecasts(dateForecasted: Date, processedFcResults: any[]): Promise<ProcessedForecast[]> {
@@ -66,6 +66,11 @@ export async function buildProcessedForecasts(dateForecasted: Date, processedFcR
 
 export async function getRecommendationsForCity(targetCityID: number, radiusDriveHours: number, limit: number): Promise<ProcessedForecast[]> {
   const dateForecasted = await getLatestForecastDate()
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Query params:' + [dateForecasted, targetCityID, radiusDriveHours * 60, limit])
+  }
+
   const processedFcResults = await pool.query(`
     SELECT
       city.id AS city_id, city.name AS city_name, date_forecasted, max_consecutive_good_days, is_recommended, good_days_csl, ndays,
