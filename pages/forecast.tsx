@@ -1,8 +1,8 @@
 import fetch from 'isomorphic-unfetch'
-import { NextPage, NextPageContext } from 'next'
-import { Fragment } from 'react'
-import { ProcessedDailyForecast, ProcessedForecast, WeathResult, City } from '../src/types'
-import { DEFAULT_DRIVE_TIME } from '../src/constants'
+import { NextPage } from 'next'
+import { FunctionComponent } from 'react'
+import { MAX_DRIVE_MINUTES } from '../src/constants'
+import { ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
 
 const IMG_SRC = 'imgs'
 
@@ -24,11 +24,10 @@ function renderTemp(temp: number) {
   return `${Math.round(temp)}\u00B0F`
 }
 
-function normalizeWeathResults(its: ProcessedForecast[]): ProcessedForecast[] {
+function normalizeWeathResults(its: ProcessedForecast[]) {
   its.forEach(f => {
     f.results.forEach(df => { df.date = new Date(df.date) })
   })
-  return its
 }
 
 function renderForecastDay(df: ProcessedDailyForecast): JSX.Element {
@@ -92,27 +91,45 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
 )
 
 
-interface ForecastProps {
-  city: City
-  forecasts: ProcessedForecast[]
-  driveHours: number
-}
-
-const Forecast: NextPage<ForecastProps> = ({ forecasts, driveHours, city }) => {
-  forecasts = normalizeWeathResults(forecasts)
+const OutsideOfRadiusForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, forecastsOutsideRadius }) => {
   return (
     <div>
-      {!forecasts.length ? (
-        <div className='sad-face-wrapper'>
-          <span className='sad-face'>:(</span>
-          No VitaminD within a {driveHours} hour drive of {city.name}
-        </div>
-      ) : (
-          <Fragment>
-            <h2>Roadtrips (within {driveHours} hours drive)</h2>
-            {renderForecasts(forecasts)}
-          </Fragment>
-        )}
+      <p className='alert warn'>
+        No VitaminD was found within {driveHoursRequested} hours of {city.name}.
+        Showing results for {MAX_DRIVE_MINUTES / 60} hours.
+      </p>
+      <h2>VitaminD (within {MAX_DRIVE_MINUTES / 60} hours drive)</h2>
+      {renderForecasts(forecastsOutsideRadius)}
+    </div>
+  )
+}
+
+const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, forecasts }) => {
+  return (
+    <div>
+      <h2>VitaminD (within {driveHoursRequested} hours drive)</h2>
+      {renderForecasts(forecasts)}
+    </div>
+  )
+}
+
+interface ForecastProps extends WeathResult {
+}
+
+const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
+  normalizeWeathResults(props.forecasts)
+  normalizeWeathResults(props.forecastsOutsideRadius)
+
+  if (props.forecasts.length) {
+    return <ForecastsView {...props} />
+  } else if (props.forecastsOutsideRadius.length) {
+    return <OutsideOfRadiusForecastsView {...props} />
+  }
+
+  return (
+    <div className='sad-face-wrapper'>
+      <span className='sad-face'>:(</span>
+      No VitaminD within a {MAX_DRIVE_MINUTES / 60} hour drive of {props.city.name}
       <style jsx>{`
         .sad-face-wrapper {
           position: fixed;

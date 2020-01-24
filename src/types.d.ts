@@ -27,5 +27,11 @@ export interface City {
 export interface WeathResult {
   forecasts: ProcessedForecast[]
   city: City
-  driveHours: number
+  limit: number
+
+  driveHoursRequested: number
+  minimumDriveHours: number
+
+  // Included if there were 0 forecasts within the radius
+  forecastsOutsideRadius: ProcessedForecast[]
 }

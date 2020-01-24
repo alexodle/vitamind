@@ -1,6 +1,7 @@
 import { Pool } from 'pg'
 import { ProcessedForecast, City } from './types'
 import { groupBy } from 'lodash'
+import { MAX_DRIVE_MINUTES } from '../src/constants'
 
 const NDAYS = 6
 
@@ -64,11 +65,11 @@ export async function buildProcessedForecasts(dateForecasted: Date, processedFcR
   return pfcs
 }
 
-export async function getRecommendationsForCity(targetCityID: number, radiusDriveHours: number, limit: number): Promise<ProcessedForecast[]> {
+export async function getRecommendationsForCity(targetCityID: number, limit: number): Promise<ProcessedForecast[]> {
   const dateForecasted = await getLatestForecastDate()
 
   if (process.env.NODE_ENV !== 'production') {
-    console.log('Query params:' + [dateForecasted, targetCityID, radiusDriveHours * 60, limit])
+    console.log('Query params:' + [dateForecasted, targetCityID, limit])
   }
 
   const processedFcResults = await pool.query(`
@@ -81,7 +82,7 @@ export async function getRecommendationsForCity(targetCityID: number, radiusDriv
     WHERE date_forecasted = $1 AND is_recommended = TRUE AND ctt.gmap_drive_time_minutes <= $3
     ORDER BY ctt.gmap_drive_time_minutes ASC
     LIMIT $4;
-  `, [dateForecasted, targetCityID, radiusDriveHours * 60, limit])
+  `, [dateForecasted, targetCityID, MAX_DRIVE_MINUTES, limit])
 
   return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
 }
