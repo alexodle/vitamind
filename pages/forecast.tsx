@@ -1,9 +1,11 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
+import Link from 'next/link'
 import { FunctionComponent } from 'react'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
-import Link from 'next/link'
+import { Alert } from '../src/components/alert'
+
 
 const IMG_SRC = 'imgs'
 
@@ -91,15 +93,14 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
   </div>
 )
 
-
 const OutsideOfRadiusForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, forecastsOutsideRadius }) => {
   return (
     <div>
-      <p className='alert warn'>
+      <Alert status='info'>
         No VitaminD was found within {driveHoursRequested} hours of {city.name}.
         Showing results for {MAX_DRIVE_MINUTES / 60} hours.
-      </p>
-      <h2>VitaminD (within {MAX_DRIVE_MINUTES / 60} hours drive)</h2>
+      </Alert>
+      <h2>VitaminD within a {MAX_DRIVE_MINUTES / 60} hour drive of {city.name}</h2>
       {renderForecasts(forecastsOutsideRadius)}
     </div>
   )
