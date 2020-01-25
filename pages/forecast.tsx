@@ -3,6 +3,7 @@ import { NextPage } from 'next'
 import { FunctionComponent } from 'react'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
+import Link from 'next/link'
 
 const IMG_SRC = 'imgs'
 
@@ -120,31 +121,40 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   normalizeWeathResults(props.forecasts)
   normalizeWeathResults(props.forecastsOutsideRadius)
 
-  if (props.forecasts.length) {
-    return <ForecastsView {...props} />
-  } else if (props.forecastsOutsideRadius.length) {
-    return <OutsideOfRadiusForecastsView {...props} />
+  function renderBody() {
+    if (props.forecasts.length) {
+      return <ForecastsView {...props} />
+    } else if (props.forecastsOutsideRadius.length) {
+      return <OutsideOfRadiusForecastsView {...props} />
+    }
+
+    return (
+      <div className='sad-face-wrapper'>
+        <span className='sad-face'>:(</span>
+        No VitaminD within a {MAX_DRIVE_MINUTES / 60} hour drive of {props.city.name}
+        <style jsx>{`
+          .sad-face-wrapper {
+            position: fixed;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            font-size: 2em;
+            transform: translate(-50%, -50%);
+          }
+          .sad-face {
+            display: block;
+            font-size: 3em;
+            padding: 20px;
+          }
+        `}</style>
+      </div>
+    )
   }
 
   return (
-    <div className='sad-face-wrapper'>
-      <span className='sad-face'>:(</span>
-      No VitaminD within a {MAX_DRIVE_MINUTES / 60} hour drive of {props.city.name}
-      <style jsx>{`
-        .sad-face-wrapper {
-          position: fixed;
-          text-align: center;
-          top: 50%;
-          left: 50%;
-          font-size: 2em;
-          transform: translate(-50%, -50%);
-        }
-        .sad-face {
-          display: block;
-          font-size: 3em;
-          padding: 20px;
-        }
-      `}</style>
+    <div>
+      <Link href="/">Change search</Link>
+      {renderBody()}
     </div>
   )
 }
