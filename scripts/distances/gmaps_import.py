@@ -26,7 +26,7 @@ def import_gmaps_drivetimes(data):
                 cur.execute('''
                     INSERT INTO city_travel_time(citya_id, cityb_id, gmap_drive_time_minutes)
                     VALUES(%s, %s, %s)
-                    ON CONFLICT (citya, cityb) DO NOTHING;''',
+                    ON CONFLICT (citya_id, cityb_id) DO NOTHING;''',
                     (citya[1], cityb[1], minutes))
 
 

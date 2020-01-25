@@ -1,13 +1,13 @@
 import { partition } from 'lodash';
 import { NextApiRequest, NextApiResponse } from "next";
 import { getCity, getRecommendationsForCity } from '../../src/access';
-import { DEFAULT_DRIVE_TIME, VALID_DRIVE_HOURS } from "../../src/constants";
+import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from "../../src/constants";
 import { ProcessedForecast, WeathResult } from "../../src/types";
 
 const DEFAULT_LIMIT = 5
 
 function safeGetDriveHours(req: NextApiRequest): number {
-  let driveHours = DEFAULT_DRIVE_TIME
+  let driveHours = DEFAULT_DRIVE_HOURS
 
   try {
     if (req.query.driveHours) {

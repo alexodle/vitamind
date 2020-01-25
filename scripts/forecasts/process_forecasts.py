@@ -31,7 +31,7 @@ def max_consecutive_good_days(fcs):
   for fc in fcs:
     if is_good_day(fc):
       good_days.append(fc[FC_DATE])
-      curr +=1
+      curr += 1
       curr_max = max(curr_max, curr)
     else:
       curr = 0
