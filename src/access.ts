@@ -25,13 +25,8 @@ async function getLatestForecastDate(): Promise<Date> {
   return dateForecasted
 }
 
-export async function getCity(id: number): Promise<City | null> {
-  const targetCityResults = await pool.query(`SELECT id, name FROM city WHERE id = $1`, [id])
-  if (targetCityResults.rowCount < 1) return null
-  return targetCityResults.rows[0]
-}
 
-export async function buildProcessedForecasts(dateForecasted: Date, processedFcResults: any[]): Promise<ProcessedForecast[]> {
+async function buildProcessedForecasts(dateForecasted: Date, processedFcResults: any[]): Promise<ProcessedForecast[]> {
   const today = new Date()
   const cities: number[] = processedFcResults.map(pfcr => pfcr.city_id)
 
@@ -63,6 +58,12 @@ export async function buildProcessedForecasts(dateForecasted: Date, processedFcR
   }))
 
   return pfcs
+}
+
+export async function getCity(id: number): Promise<City | null> {
+  const targetCityResults = await pool.query(`SELECT id, name FROM city WHERE id = $1`, [id])
+  if (targetCityResults.rowCount < 1) return null
+  return targetCityResults.rows[0]
 }
 
 export async function getRecommendationsForCity(targetCityID: number, limit: number): Promise<ProcessedForecast[]> {
