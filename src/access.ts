@@ -86,16 +86,3 @@ export async function getRecommendationsForCity(targetCityID: number, limit: num
 
   return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
 }
-
-export async function getAllLatestProcesssedForecasts(): Promise<ProcessedForecast[]> {
-  const dateForecasted = await getLatestForecastDate()
-
-  const processedFcResults = await pool.query(`
-    SELECT city.id AS city_id, city.name AS city_name, date_forecasted, max_consecutive_good_days, is_recommended, good_days_csl, ndays
-    FROM processed_forecast
-    RIGHT JOIN city ON city.id = processed_forecast.city_id
-    WHERE date_forecasted = $1;
-  `, [dateForecasted])
-
-  return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
-}
