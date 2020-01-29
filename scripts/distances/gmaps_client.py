@@ -8,10 +8,27 @@ import os
 import json
 import csv
 from itertools import groupby
+import psycopg2
+
+
+MAX_DISTANCE_ESTIMATE = 1000 * 1609.34 # 1k miles
+
+ID = 0
+NAME = 1
+LOC = 2
+
+
+conn_str = os.environ['POSTGRES_CONNECTION_STR']
 
 
 key = os.environ['GMAPS_KEY']
 base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json'
+
+
+# ex: POINT(-115.3154248 36.1251954)
+def parse_latlon_txt(txt):
+    lon, lat = txt[6:-1].split(' ')
+    return (lat, lon)
 
 
 def meters_to_miles(meters):
@@ -19,7 +36,7 @@ def meters_to_miles(meters):
 
 
 def build_locs_param_value(cities):
-    return '|'.join('%s,%s' % (lat, lon) for _, lat, lon in cities)
+    return '|'.join('%s,%s' % (lat, lon) for _, _, (lat, lon) in cities)
 
 
 def request_distances(origins, destinations):
@@ -33,48 +50,46 @@ def request_distances(origins, destinations):
     return r.json()
 
 
-def for_each_city_pair(cities):
-    seen = set()
-    for citya, lata, lona in cities:
-        for cityb, latb, lonb in cities:
-            combo = frozenset([citya, cityb])
-            if citya == cityb or combo in seen:
-                continue
-            seen.add(combo)
-            yield (citya, lata, lona), (cityb, latb, lonb)
+def for_each_distance_matrix_query():
+    with psycopg2.connect(conn_str) as conn:
+        with conn.cursor() as cur:
+            cur.execute('''
+                SELECT
+                    citya.id citya_id, citya.name citya_name, ST_AsText(citya.loc) citya_latlon,
+                    cityb.id cityb_id, cityb.name cityb_name, ST_AsText(cityb.loc) cityb_latlon
+                FROM city citya
+                JOIN city cityb ON citya.id < cityb.id
+                WHERE
+                    (citya.id, cityb.id) NOT IN (
+                        SELECT ctt.citya_id, ctt.cityb_id FROM city_travel_time ctt
+                        UNION
+                        SELECT ctt.cityb_id, ctt.citya_id FROM city_travel_time ctt
+                    )
+                    AND
+                    ST_Distance(ST_Transform(citya.loc, 2163), ST_Transform(cityb.loc, 2163)) <= %s
+                ORDER BY citya.id;
+            ''', [MAX_DISTANCE_ESTIMATE])
+            for _, pairs_it in groupby(cur.fetchall(), lambda p: p[0]):
+                rows = list(pairs_it)
+                oid, oname, olatlontxt, _, _, _ = rows[0]
+                origin = (oid, oname, parse_latlon_txt(olatlontxt))
+                dests = [(did, dname, parse_latlon_txt(dlatlon_txt)) for _, _, _, did, dname, dlatlon_txt in rows]
+                yield (origin, dests)
 
 
-def for_each_distance_matrix_query(cities):
-    for origin, pairs in groupby(for_each_city_pair(cities), lambda p: p[0]):
-        destinations = [dest for _, dest in pairs]
-        yield origin, destinations
-
-
-def wget_all(cities, outd):
-    for origin, destinations in for_each_distance_matrix_query(cities):
-        fname = '%s.json' % origin[0].replace(' ', '_')
+def wget_all(outd):
+    for origin, destinations in for_each_distance_matrix_query():
+        fname = '%s.json' % origin[NAME].replace(' ', '_')
         ofp = os.path.join(outd, fname)
-        print 'QUERY: origin: %s, nDestinations: %s, fp: %s' % (origin[0], len(destinations), ofp)
+        print 'QUERY: origin: %s, nDestinations: %s, fp: %s' % (origin[NAME], len(destinations), ofp)
         results = request_distances([origin], destinations)
         with open(ofp, 'w+') as f:
             json.dump({
-                'origin_city': origin[0],
-                'dest_cities': [city for city, _, _ in destinations],
+                'origin_city': [origin[ID], origin[NAME]],
+                'dest_cities': [[dest_id, dest_name] for dest_id, dest_name, _ in destinations],
                 'results': results,
             }, f)
 
 
-def read_cities(fp):
-    cities = []
-    with open(fp, 'r+') as f:
-        rdr = csv.reader(f)
-        next(rdr) # skip header
-        for row in rdr:
-            cities.append((row[0], float(row[1]), float(row[2])))
-    return cities
-
-
 if __name__ == '__main__':
-    outd = sys.argv[1]
-    cities = read_cities('../../latlon.csv')
-    wget_all(cities, outd)
+    wget_all(sys.argv[1])
