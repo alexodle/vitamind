@@ -1,9 +1,10 @@
 import { NextPage } from 'next'
 import Router from 'next/router'
-import { SyntheticEvent, useContext } from 'react'
-import { VALID_DRIVE_HOURS } from '../src/constants'
-import { IndexContext } from '../src/indexContext'
+import { SyntheticEvent, useContext, useState } from 'react'
+import { VALID_DRIVE_HOURS, DEFAULT_DRIVE_HOURS } from '../src/constants'
+import { parseCookies, setCookie } from 'nookies'
 
+// TODO: generate from script
 const HARDCODED_DARK_CITIES = [
   ['Bend', '10'],
   ['Boise', '11'],
@@ -13,14 +14,24 @@ const HARDCODED_DARK_CITIES = [
   ['Walla Walla', '9'],
   ['Yakima', '34'],
 ]
+const DEFAULT_CITY = '5' // Seattle
 
-const Index: NextPage<{}> = () => {
-  const { cityID, driveHours, setCityID, setDriveHours } = useContext(IndexContext)
-  console.log('hihi.here is the context:')
-  console.dir({ cityID, driveHours, setCityID, setDriveHours })
+export interface IndexProps {
+  defaultCityID?: number
+  defaultDriveHours?: number
+}
 
-  function onSubmit(ev: SyntheticEvent) {
+const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
+  const [cityID, setCityID] = useState(defaultCityID ? defaultCityID.toString() : DEFAULT_CITY)
+  const [driveHours, setDriveHours] = useState(defaultDriveHours ? defaultDriveHours.toString() : DEFAULT_DRIVE_HOURS.toString())
+
+  const onSubmit = (ev: SyntheticEvent) => {
     ev.preventDefault()
+
+    // Save last search
+    setCookie(null, 'defaultCityID', cityID, {})
+    setCookie(null, 'defaultDriveHours', driveHours, {})
+
     Router.push(`/forecast?cityID=${cityID}&driveHours=${driveHours}`)
   }
 
@@ -55,6 +66,23 @@ const Index: NextPage<{}> = () => {
       `}</style>
     </div>
   )
+}
+
+Index.getInitialProps = (ctx): IndexProps => {
+  const cookies = parseCookies(ctx)
+  if (!cookies.defaultCityID || !cookies.defaultDriveHours) {
+    return {}
+  }
+
+  const result = {
+    defaultCityID: parseInt(cookies.defaultCityID, 10),
+    defaultDriveHours: parseInt(cookies.defaultDriveHours, 10),
+  }
+  if (isNaN(result.defaultCityID) || isNaN(result.defaultDriveHours)) {
+    return {}
+  }
+
+  return result
 }
 
 export default Index

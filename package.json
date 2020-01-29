@@ -4,10 +4,12 @@
   "description": "get that weath",
   "main": "index.js",
   "dependencies": {
+    "@types/nookies": "^2.0.3",
     "@types/pg": "^7.11.2",
     "isomorphic-unfetch": "^3.0.0",
     "lodash": "^4.17.15",
     "next": "^9.1.5",
+    "nookies": "^2.0.8",
     "pg": "^7.14.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
