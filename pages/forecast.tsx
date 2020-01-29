@@ -154,7 +154,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
 
   return (
     <div>
-      <Link href="/">Change search</Link>
+      <Link href="/"><a>Change search</a></Link>
       {renderBody()}
     </div>
   )
