@@ -20,8 +20,15 @@ RAINPCT = 7
 DATE_FORECASTED = 8
 
 
+# TODO: split "good day" concept into categories. (i.e. warm, sunny)
 def is_good_day(fc):
-  return fc[RAINPCT] < 20.0 and fc[CLOUDCOVER] < 100.0 and fc[MAXTEMP] >= 67.0 and fc[MAXFEEL] <= 82.0
+  return (
+    # Warm
+    fc[RAINPCT] < 20.0 and fc[CLOUDCOVER] < 100.0 and fc[MAXTEMP] >= 67.0 and fc[MAXFEEL] <= 82.0
+  ) or (
+    # Sunny
+    fc[RAINPCT] < 10.0 and fc[CLOUDCOVER] < 75.0
+  )
 
 
 def max_consecutive_good_days(fcs):
@@ -66,7 +73,7 @@ def process_forecast(city_id, city_name, today_iso):
 
 
 def process_forecasts():
-  today_iso = date.today().isoformat()
+  today_iso = date(2020, 1, 24) #date.today().isoformat()
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
@@ -82,5 +89,7 @@ def process_forecasts():
 
 
 if __name__ == '__main__':
-  process_forecasts()
-  conn.close()
+  try:
+    process_forecasts()
+  finally:
+    conn.close()
