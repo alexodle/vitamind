@@ -2,10 +2,9 @@ import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
 import Link from 'next/link'
 import { FunctionComponent } from 'react'
+import { Alert } from '../src/components/alert'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
-import { Alert } from '../src/components/alert'
-
 
 const IMG_SRC = 'imgs'
 
@@ -16,11 +15,11 @@ function friendlyDay(day: number): string {
 
 function getWeatherImg(df: ProcessedDailyForecast): [string, string] {
   if (df.rainpct > 25) {
-    return [`rain_s_cloudy.png`, 'Rainy']
+    return ['rain_s_cloudy.png', 'Rainy']
   } else if (df.cloudcover > 25) {
-    return [`partly_cloudy.png`, 'Partly cloudy']
+    return ['partly_cloudy.png', 'Partly cloudy']
   }
-  return [`sunny.png`, 'Sunny']
+  return ['sunny.png', 'Sunny']
 }
 
 function renderTemp(temp: number) {

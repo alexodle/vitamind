@@ -1,7 +1,7 @@
-import { Pool } from 'pg'
-import { ProcessedForecast, City } from './types'
 import { groupBy } from 'lodash'
+import { Pool } from 'pg'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
+import { City, ProcessedForecast } from './types'
 
 const NDAYS = 6
 

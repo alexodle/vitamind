@@ -1,8 +1,8 @@
 import { NextPage } from 'next'
 import Router from 'next/router'
-import { SyntheticEvent, useContext, useState } from 'react'
-import { VALID_DRIVE_HOURS, DEFAULT_DRIVE_HOURS } from '../src/constants'
 import { parseCookies, setCookie } from 'nookies'
+import { SyntheticEvent, useState } from 'react'
+import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
 
 // TODO: generate from script
 const HARDCODED_DARK_CITIES = [
@@ -24,9 +24,12 @@ export interface IndexProps {
 const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
   const [cityID, setCityID] = useState(defaultCityID ? defaultCityID.toString() : DEFAULT_CITY)
   const [driveHours, setDriveHours] = useState(defaultDriveHours ? defaultDriveHours.toString() : DEFAULT_DRIVE_HOURS.toString())
+  const [isQuerying, setIsQuerying] = useState(false)
 
   const onSubmit = (ev: SyntheticEvent) => {
     ev.preventDefault()
+
+    setIsQuerying(true)
 
     // Save last search
     setCookie(null, 'defaultCityID', cityID, {})
@@ -40,20 +43,20 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
       <h1>VitaminD <em>Let's get some</em></h1>
       <form>
         <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
-          <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)}>
+          <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
             {HARDCODED_DARK_CITIES.map(([name, cid]) =>
               <option key={cid} value={cid}>{name}</option>
             )}
           </select>
         </label>
         <label htmlFor='driveHours'>How far will you drive?
-          <select id='driveHours' name='driveHours' value={driveHours} onChange={ev => setDriveHours(ev.target.value)}>
+          <select id='driveHours' name='driveHours' value={driveHours} onChange={ev => setDriveHours(ev.target.value)} disabled={isQuerying}>
             {VALID_DRIVE_HOURS.map(h =>
               <option key={h} value={h.toString()}>{h} hours</option>
             )}
           </select>
         </label>
-        <button type='submit' onClick={onSubmit}>VitaminD please</button>
+        <button type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
       </form>
       <style jsx>{`
       label {
