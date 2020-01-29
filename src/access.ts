@@ -78,7 +78,7 @@ export async function getRecommendationsForCity(targetCityID: number, limit: num
       ctt.gmap_drive_time_minutes AS gmap_drive_time_minutes
     FROM processed_forecast pf
     JOIN city ON city.id = pf.city_id
-    JOIN city_travel_time ctt ON (ctt.citya_id = $2 AND ctt.cityb_id = pf.city_id) OR (ctt.cityb_id = $2 AND ctt.citya_id = pf.city_id)
+    JOIN city_travel_time_all ctt ON ctt.city_from_id = pf.city_id AND ctt.city_to_id = $2
     WHERE date_forecasted = $1 AND is_recommended = TRUE AND ctt.gmap_drive_time_minutes <= $3
     ORDER BY ctt.gmap_drive_time_minutes ASC
     LIMIT $4;
