@@ -3,7 +3,8 @@
 
 -- Table Definition ----------------------------------------------
 
-CREATE TABLE alert_status (
+CREATE TABLE alert_status
+(
     city_id integer NOT NULL REFERENCES city(id),
     start_date_forecasted date NOT NULL,
     end_date_forecasted date NOT NULL,
@@ -15,5 +16,7 @@ CREATE TABLE alert_status (
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX alert_status_city_id_start_date_forecasted_end_date_forecasted_ ON alert_status(city_id int4_ops,start_date_forecasted date_ops,end_date_forecasted date_ops,max_drive_minutes int4_ops);
-CREATE INDEX alert_status_start_date_forecasted_end_date_forecasted_did_chan ON alert_status(start_date_forecasted date_ops,end_date_forecasted date_ops,did_change bool_ops);
+CREATE UNIQUE INDEX alert_status_city_id_start_date_forecasted_end_date_forecasted_ ON alert_status(city_id
+int4_ops,start_date_forecasted date_ops,end_date_forecasted date_ops,max_drive_minutes int4_ops);
+CREATE INDEX alert_status_start_date_forecasted_end_date_forecasted_did_chan ON alert_status(start_date_forecasted
+date_ops,end_date_forecasted date_ops,did_change bool_ops);
