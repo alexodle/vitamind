@@ -6,7 +6,18 @@ import sys
 import os
 import json
 import csv
+import psycopg2
 
+
+# HACKHACK - TODO FIX
+#from ..util import parse_latlon_txt
+# ex: POINT(-115.3154248 36.1251954)
+def parse_latlon_txt(txt):
+    lon, lat = txt[6:-1].split(' ')
+    return (lat, lon)
+
+
+conn_str = os.environ['POSTGRES_CONNECTION_STR']
 
 key = os.environ['DARKSKY_KEY']
 base_url = 'https://api.darksky.net'
@@ -19,26 +30,28 @@ def get_weath(lat, lon):
     return res
 
 
-def wget(city, lat, lon, outd):
-    today = date.today()
+def wget(cid, city_name, lat, lon, today_iso, outd):
+    print 'downloading forecast for %s' % city_name
     result = get_weath(lat, lon)
-    fp = os.path.join(outd, city.replace(' ', '_') + '.json')
+    fp = os.path.join(outd, '%d.json' % cid)
     with open(fp, 'w+') as f:
-        json.dump({'city': city, 'date': today.isoformat(), 'results': result}, f)
+        json.dump({'city': [cid, city_name], 'date': today_iso, 'results': result}, f)
 
 
-def read_cities(fp):
+def read_cities():
     cities = []
-    with open(fp, 'r+') as f:
-        rdr = csv.reader(f)
-        next(rdr) # skip header
-        for row in rdr:
-            cities.append((row[0], float(row[1]), float(row[2])))
+    with psycopg2.connect(conn_str) as conn:
+        with conn.cursor() as cur:
+            cur.execute('SELECT id, name, ST_AsText(loc) city_latlon FROM city;')
+            for cid, name, latlon_txt in cur.fetchall():
+                lat, lon = parse_latlon_txt(latlon_txt)
+                cities.append((cid, name, lat, lon))
     return cities
 
 
 if __name__ == '__main__':
     outd = sys.argv[1]
-    cities = read_cities('../../latlon.csv')
-    for city, lat, lon in cities:
-        wget(city, lat, lon, outd)
+    cities = read_cities()
+    today = date.today()
+    for cid, city_name, lat, lon in cities:
+        wget(cid, city_name, lat, lon, today.isoformat(), outd)

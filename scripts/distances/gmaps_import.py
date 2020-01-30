@@ -23,6 +23,7 @@ def import_gmaps_drivetimes(data):
                     VALUES(%s, %s, %s)
                     ON CONFLICT (citya_id, cityb_id) DO NOTHING;''',
                     (citya_cid, cityb_cid, minutes))
+            cur.execute('''REFRESH MATERIALIZED VIEW city_travel_time_all;''')
 
 
 if __name__ == '__main__':

@@ -73,11 +73,11 @@ def process_forecast(city_id, city_name, today_iso):
 
 
 def process_forecasts():
-  today_iso = date(2020, 1, 24) #date.today().isoformat()
+  today_iso = date.today().isoformat()
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
-        SELECT city_id, city.name FROM forecast
+        SELECT DISTINCT(city_id), city.name FROM forecast
         JOIN city ON city.id = city_id
         WHERE date_forecasted = %s AND city_id NOT IN (
           SELECT city_id FROM processed_forecast WHERE date_forecasted = %s

@@ -11,14 +11,12 @@ conn_str = os.environ['POSTGRES_CONNECTION_STR']
 
 
 def import_darksky_forecast(data):
-    city = data['city']
+    city_id, _ = data['city']
     date_forecasted_iso = data['date']
     raw = data['results']['daily']['data']
     today = date.today()
     with psycopg2.connect(conn_str) as conn:
         with conn.cursor() as cur:
-            cur.execute('SELECT id FROM city WHERE name = %s;', (city, ))
-            city_id = cur.fetchone()
             for it in raw:
                 fc_date = date.fromtimestamp(it['time'])
                 if fc_date < today:

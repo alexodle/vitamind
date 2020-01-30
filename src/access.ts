@@ -25,7 +25,6 @@ async function getLatestForecastDate(): Promise<Date> {
   return dateForecasted
 }
 
-
 async function buildProcessedForecasts(dateForecasted: Date, processedFcResults: any[]): Promise<ProcessedForecast[]> {
   const today = new Date()
   const cities: number[] = processedFcResults.map(pfcr => pfcr.city_id)
@@ -79,7 +78,7 @@ export async function getRecommendationsForCity(targetCityID: number, limit: num
       ctt.gmap_drive_time_minutes AS gmap_drive_time_minutes
     FROM processed_forecast pf
     JOIN city ON city.id = pf.city_id
-    JOIN city_travel_time_all ctt ON ctt.city_from_id = pf.city_id AND ctt.city_to_id = $2
+    JOIN city_travel_time_all ctt ON ctt.city_from_id = $2 AND ctt.city_to_id = pf.city_id
     WHERE date_forecasted = $1 AND is_recommended = TRUE AND ctt.gmap_drive_time_minutes <= $3
     ORDER BY ctt.gmap_drive_time_minutes ASC
     LIMIT $4;

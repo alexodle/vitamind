@@ -11,6 +11,14 @@ from itertools import groupby
 import psycopg2
 
 
+# HACKHACK - TODO FIX
+#from ..util import parse_latlon_txt
+# ex: POINT(-115.3154248 36.1251954)
+def parse_latlon_txt(txt):
+    lon, lat = txt[6:-1].split(' ')
+    return (lat, lon)
+
+
 MAX_DISTANCE_ESTIMATE = 1000 * 1609.34 # 1k miles
 
 ID = 0
@@ -23,12 +31,6 @@ conn_str = os.environ['POSTGRES_CONNECTION_STR']
 
 key = os.environ['GMAPS_KEY']
 base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json'
-
-
-# ex: POINT(-115.3154248 36.1251954)
-def parse_latlon_txt(txt):
-    lon, lat = txt[6:-1].split(' ')
-    return (lat, lon)
 
 
 def meters_to_miles(meters):
