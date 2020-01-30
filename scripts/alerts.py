@@ -43,6 +43,8 @@ def cities_gained_lost_for_city(city_id, start_date_forecasted, end_date_forecas
       for df, city_id in cur.fetchall():
         by_fd[df].add(city_id)
       cities_before, cities_after = by_fd[start_date_forecasted], by_fd[end_date_forecasted]
+      print 'city -> (cities_before, cities_after)'
+      print '%s -> %s' % (city_id, (cities_before, cities_after))
       return (cities_after - cities_before, cities_before - cities_after)
 
 
@@ -63,8 +65,6 @@ def generate_alert_queries():
         for drive_time_hours in VALID_DRIVE_HOURS:
           drive_time_mins = drive_time_hours * 60
           gained, lost = cities_gained_lost_for_city(city_cid, second_most_recent_df, most_recent_df, drive_time_mins)
-          print 'inserting'
-          print (city_cid, second_most_recent_df, most_recent_df, drive_time_mins, build_cid_csl(gained), build_cid_csl(lost), bool(len(gained) or len(lost)))
           cur.execute('''
             INSERT INTO alert_status(city_id, start_date_forecasted, end_date_forecasted, max_drive_minutes, cities_gained_csl, cities_lost_csl, did_change)
             VALUES(%s, %s, %s, %s, %s, %s, %s)
