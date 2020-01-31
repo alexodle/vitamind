@@ -1,14 +1,22 @@
 import psycopg2
 import os
 from datetime import date
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 conn_str = os.environ['POSTGRES_CONNECTION_STR']
 conn = psycopg2.connect(conn_str)
 
+email_from = os.environ['ALERT_EMAIL']
+email_pw = os.environ['ALERT_EMAIL_PW']
+server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+
 
 EMAIL_SUBJ_TMPL = 'VitaminD alert - new VitaminD opportunities detected!'
-EMAIL_TMPL = '''
+EMAIL_TMPL = '''\
 <html>
 <body>
 <b>%(email)s</b>,
@@ -18,17 +26,41 @@ EMAIL_TMPL = '''
 <br/>
 - VitaminD
 </body>
-</html>
-'''
+</html>'''
+EMAIL_TMPL_PLAIN = '''\
+%(email)s,
+You have new opportunities for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
+Check them out here: http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+
+- VitaminD'''
 
 
 def send_alert(today, alert_row):
   _, email, city_id, city_name, max_drive_minutes, _, _, _ = alert_row
+
+  tmpl_params = { 'email': email, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id}
   subj = EMAIL_SUBJ_TMPL
-  body = EMAIL_TMPL % ({ 'email': email, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id})
-  print 'would send this email:'
-  print subj
-  print body
+  body = EMAIL_TMPL % tmpl_params
+  body_plain = EMAIL_TMPL_PLAIN % tmpl_params
+
+  message = MIMEMultipart("alternative")
+  message["Subject"] = subj
+  message["From"] = email_from
+  message["To"] = email
+
+  part1 = MIMEText(body_plain, "plain")
+  part2 = MIMEText(body, "html")
+
+  # Add HTML/plain-text parts to MIMEMultipart message
+  # The email client will try to render the last part first
+  message.attach(part1)
+  message.attach(part2)
+
+  # Create secure connection with server and send email
+  try:
+    server.sendmail(email_from, email, message.as_string())
+  finally:
+    server.close()
 
 
 def process_alert(today, alert_row):
@@ -36,6 +68,7 @@ def process_alert(today, alert_row):
   with conn:
     with conn.cursor() as cur:
       if did_change:
+        print 'sending alert to: %s' % email
         send_alert(today, alert_row)
       else:
         print 'not sending alert email to: %s' % email
@@ -79,6 +112,8 @@ def process_user_alerts():
 
 if __name__ == '__main__':
   try:
+    server.login(email_from, email_pw)
     process_user_alerts()
   finally:
+    server.close()
     conn.close()
