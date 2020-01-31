@@ -47,20 +47,10 @@ def send_alert(today, alert_row):
   message["Subject"] = subj
   message["From"] = email_from
   message["To"] = email
+  message.attach(MIMEText(body_plain, "plain"))
+  message.attach(MIMEText(body, "html"))
 
-  part1 = MIMEText(body_plain, "plain")
-  part2 = MIMEText(body, "html")
-
-  # Add HTML/plain-text parts to MIMEMultipart message
-  # The email client will try to render the last part first
-  message.attach(part1)
-  message.attach(part2)
-
-  # Create secure connection with server and send email
-  try:
-    server.sendmail(email_from, email, message.as_string())
-  finally:
-    server.close()
+  server.sendmail(email_from, email, message.as_string())
 
 
 def process_alert(today, alert_row):
