@@ -1,4 +1,5 @@
 import { NextPage } from 'next'
+import Head from 'next/head'
 import Router from 'next/router'
 import { parseCookies, setCookie } from 'nookies'
 import { SyntheticEvent, useState } from 'react'
@@ -40,7 +41,10 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
 
   return (
     <div>
-      <h1>VitaminD <em>Let's get some</em></h1>
+      <Head>
+        <title>VitaminD - let's get some</title>
+      </Head>
+      <h1> VitaminD <em>let's get some</em></h1 >
       <form>
         <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
           <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
@@ -67,7 +71,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         display: block;
       }
       `}</style>
-    </div>
+    </div >
   )
 }
 

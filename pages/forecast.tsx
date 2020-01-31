@@ -1,5 +1,6 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
+import Head from 'next/head'
 import Link from 'next/link'
 import { FunctionComponent } from 'react'
 import { Alert } from '../src/components/alert'
@@ -165,6 +166,9 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
 
   return (
     <div>
+      <Head>
+        <title>VitaminD - let's get some</title>
+      </Head>
       <Link href="/"><a>Change search</a></Link>
       {renderBody()}
     </div>
