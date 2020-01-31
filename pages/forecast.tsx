@@ -13,6 +13,16 @@ function friendlyDay(day: number): string {
   return DAYS[day]
 }
 
+function friendlyHoursText(driveTimeMinutes: number): string {
+  const driveTimeHours = Math.floor(driveTimeMinutes / 60)
+  if (driveTimeHours < 1) {
+    return 'Less than an hour'
+  } else if (driveTimeHours === 1) {
+    return '1 hour'
+  }
+  return `${driveTimeHours} hours`
+}
+
 function getWeatherImg(df: ProcessedDailyForecast): [string, string] {
   if (df.rainpct >= 20) {
     return ['rain_s_cloudy.png', 'Rainy']
@@ -69,7 +79,7 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
   <div>
     {fcs.map((f: ProcessedForecast) => (
       <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
-        <h3>{f.city} ({Math.floor(f.driveTimeMinutes / 60)} hours)</h3>
+        <h3>{f.city} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
         <ol className='daily-forecast-list'>
           {f.results.map(df => {
             return (
