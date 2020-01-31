@@ -15,33 +15,61 @@ email_pw = os.environ['ALERT_EMAIL_PW']
 server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
 
 
-EMAIL_SUBJ_TMPL = 'VitaminD alert - new VitaminD opportunities detected!'
-EMAIL_TMPL = '''\
+GAINED_CITIES_EMAIL_SUBJ = 'VitaminD alert - new VitaminD opportunities detected!'
+GAINED_CITIES_EMAIL_TMPL = '''\
 <html>
 <body>
 <b>%(email)s</b>,
 <p>You have new opportunities for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
 <p><a href="http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true"><b>Check them out here</b></a></p>
 <br/>
-<br/>
 - VitaminD
 </body>
 </html>'''
-EMAIL_TMPL_PLAIN = '''\
+GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 You have new opportunities for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
 Check them out here: http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
 
 - VitaminD'''
 
+LOST_CITIES_EMAIL_SUBJ = 'VitaminD alert - you lost some VitaminD opportunities'
+LOST_CITIES_EMAIL_TMPL = '''\
+<html>
+<body>
+<b>%(email)s</b>,
+<p>We detected fewer opportunities than you had yesterday for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
+<p><a href="http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true">\
+<b>Check them out here to make sure you don't need to change your plans</b>\
+</a></p>
+<br/>
+- VitaminD
+</body>
+</html>'''
+LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
+%(email)s,
+We detected fewer opportunities than you had yesterday for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
+Check them out here to make sure you don't need to change your plans:\
+  http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+
+- VitaminD'''
+
 
 def send_alert(today, alert_row):
-  _, email, city_id, city_name, max_drive_minutes, _, _, _ = alert_row
+  _, email, city_id, city_name, max_drive_minutes, cities_gained_csl, _, _ = alert_row
+
+  if cities_gained_csl:
+    subj = GAINED_CITIES_EMAIL_SUBJ
+    html_tmpl = GAINED_CITIES_EMAIL_TMPL
+    plain_tmpl = GAINED_CITIES_EMAIL_TMPL_PLAIN
+  else:
+    subj = LOST_CITIES_EMAIL_SUBJ
+    html_tmpl = LOST_CITIES_EMAIL_TMPL
+    plain_tmpl = LOST_CITIES_EMAIL_TMPL_PLAIN
 
   tmpl_params = { 'email': email, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id}
-  subj = EMAIL_SUBJ_TMPL
-  body = EMAIL_TMPL % tmpl_params
-  body_plain = EMAIL_TMPL_PLAIN % tmpl_params
+  body = html_tmpl % tmpl_params
+  body_plain = plain_tmpl % tmpl_params
 
   message = MIMEMultipart("alternative")
   message["Subject"] = subj

@@ -14,8 +14,10 @@ function friendlyDay(day: number): string {
 }
 
 function getWeatherImg(df: ProcessedDailyForecast): [string, string] {
-  if (df.rainpct > 25) {
+  if (df.rainpct >= 20) {
     return ['rain_s_cloudy.png', 'Rainy']
+  } else if (df.cloudcover > 75) {
+    return ['cloudy.png', 'Cloudy']
   } else if (df.cloudcover > 25) {
     return ['partly_cloudy.png', 'Partly cloudy']
   }

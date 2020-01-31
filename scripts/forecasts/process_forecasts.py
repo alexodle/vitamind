@@ -21,13 +21,14 @@ DATE_FORECASTED = 8
 
 
 # TODO: split "good day" concept into categories. (i.e. warm, sunny)
+# IMPORTANT: definition of sunny should match the image we display on the frontend (should probably move that logic here)
 def is_good_day(fc):
   return (
     # Warm
     fc[RAINPCT] < 20.0 and fc[CLOUDCOVER] < 100.0 and fc[MAXTEMP] >= 67.0 and fc[MAXFEEL] <= 82.0
   ) or (
     # Sunny
-    fc[RAINPCT] < 10.0 and fc[CLOUDCOVER] < 75.0
+    fc[RAINPCT] < 20.0 and fc[CLOUDCOVER] <= 75.0
   )
 
 
