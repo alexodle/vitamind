@@ -12,6 +12,5 @@ CREATE TABLE user_alert (
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX user_alert_pkey ON user_alert(id int4_ops);
 CREATE UNIQUE INDEX user_alert_city_id_user_id_idx ON user_alert(city_id int4_ops,user_id int4_ops);
 CREATE INDEX user_alert_city_id_max_drive_minutes_idx ON user_alert(city_id int4_ops,max_drive_minutes int4_ops);

@@ -11,5 +11,4 @@ CREATE TABLE city (
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX city_pkey ON city(id int4_ops);
 CREATE UNIQUE INDEX city_name_key ON city(name text_ops);

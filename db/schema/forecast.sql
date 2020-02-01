@@ -18,6 +18,5 @@ CREATE TABLE forecast (
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX forecast_pkey ON forecast(id int4_ops);
 CREATE INDEX forecast_city_id_date_forecasted_idx ON forecast(city_id int4_ops,date_forecasted date_ops);
 CREATE UNIQUE INDEX forecast_city_id_date_forecasted_fc_date_idx ON forecast(city_id int4_ops,date_forecasted date_ops,fc_date date_ops);

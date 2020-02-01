@@ -15,6 +15,5 @@ CREATE TABLE processed_forecast (
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX processed_forecast_pkey ON processed_forecast(id int4_ops);
 CREATE UNIQUE INDEX processed_forecast_city_id_date_forecasted_idx ON processed_forecast(city_id int4_ops,date_forecasted date_ops);
 CREATE INDEX processed_forecast_date_forecasted_idx ON processed_forecast(date_forecasted date_ops);
