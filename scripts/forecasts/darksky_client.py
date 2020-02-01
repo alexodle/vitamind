@@ -38,11 +38,18 @@ def wget(cid, city_name, lat, lon, today_iso, outd):
         json.dump({'city': [cid, city_name], 'date': today_iso, 'results': result}, f)
 
 
-def read_cities():
+def read_cities(today):
     cities = []
     with psycopg2.connect(conn_str) as conn:
         with conn.cursor() as cur:
-            cur.execute('SELECT id, name, ST_AsText(loc) city_latlon FROM city;')
+            cur.execute('''
+                SELECT id, name, ST_AsText(loc) city_latlon 
+                FROM city
+                WHERE id NOT IN (
+                    SELECT DISTINCT(city_id)
+                    FROM forecast
+                    WHERE date_forecasted = %s
+                )''', (today, ))
             for cid, name, latlon_txt in cur.fetchall():
                 lat, lon = parse_latlon_txt(latlon_txt)
                 cities.append((cid, name, lat, lon))
@@ -51,7 +58,7 @@ def read_cities():
 
 if __name__ == '__main__':
     outd = sys.argv[1]
-    cities = read_cities()
     today = date.today()
+    cities = read_cities(today)
     for cid, city_name, lat, lon in cities:
         wget(cid, city_name, lat, lon, today.isoformat(), outd)
