@@ -178,7 +178,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
 Forecast.getInitialProps = async (ctx): Promise<ForecastProps> => {
   const cityID = ctx.query.cityID as string
   const driveHours = ctx.query.driveHours as string
-  const res = await fetch(`http://localhost:3000/api/weath?driveHours=${driveHours}&cityID=${cityID}`)
+  const res = await fetch(process.env.BASE_URL + `/api/weath?driveHours=${driveHours}&cityID=${cityID}`)
   if (!res.ok) {
     throw new Error((await res.json()).error)
   }
