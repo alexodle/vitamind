@@ -21,7 +21,7 @@ GAINED_CITIES_EMAIL_TMPL = '''\
 <body>
 <b>%(email)s</b>,
 <p>You have new opportunities for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true"><b>Check them out here</b></a></p>
+<p><a href="https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true"><b>Check them out here</b></a></p>
 <br/>
 - VitaminD
 </body>
@@ -29,7 +29,7 @@ GAINED_CITIES_EMAIL_TMPL = '''\
 GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 You have new opportunities for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
-Check them out here: http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+Check them out here: https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
 
 - VitaminD'''
 
@@ -39,7 +39,7 @@ LOST_CITIES_EMAIL_TMPL = '''\
 <body>
 <b>%(email)s</b>,
 <p>We detected fewer opportunities than you had yesterday for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true">\
+<p><a href="https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true">\
 <b>Check them out here to make sure you don't need to change your plans</b>\
 </a></p>
 <br/>
@@ -50,7 +50,7 @@ LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 We detected fewer opportunities than you had yesterday for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
 Check them out here to make sure you don't need to change your plans:\
-  http://localhost:3000/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+  https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
 
 - VitaminD'''
 
