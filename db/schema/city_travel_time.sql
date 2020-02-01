@@ -3,17 +3,14 @@
 
 -- Table Definition ----------------------------------------------
 
-CREATE TABLE alert_status (
-    city_id integer NOT NULL REFERENCES city(id),
-    start_date_forecasted date NOT NULL,
-    end_date_forecasted date NOT NULL,
-    cities_gained_csl text NOT NULL,
-    cities_lost_csl text NOT NULL,
-    did_change boolean NOT NULL,
-    max_drive_minutes integer NOT NULL
+CREATE TABLE city_travel_time (
+    citya_id integer NOT NULL REFERENCES city(id),
+    cityb_id integer NOT NULL REFERENCES city(id),
+    gmap_drive_time_minutes integer
 );
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX alert_status_city_id_start_date_forecasted_end_date_forecasted_ ON alert_status(city_id int4_ops,start_date_forecasted date_ops,end_date_forecasted date_ops,max_drive_minutes int4_ops);
-CREATE INDEX alert_status_start_date_forecasted_end_date_forecasted_did_chan ON alert_status(start_date_forecasted date_ops,end_date_forecasted date_ops,did_change bool_ops);
+CREATE UNIQUE INDEX city_travel_time_city_lookup ON city_travel_time(citya_id int4_ops,cityb_id int4_ops);
+CREATE INDEX city_travel_time_citya_drivetime ON city_travel_time(citya_id int4_ops,gmap_drive_time_minutes int4_ops);
+CREATE INDEX city_travel_time_cityb_drivetime ON city_travel_time(cityb_id int4_ops,gmap_drive_time_minutes int4_ops);
