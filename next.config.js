@@ -11,7 +11,7 @@ module.exports = (phase) => {
 
   return {
     env: {
-      BASE_URL: 'http://ec2-54-227-104-71.compute-1.amazonaws.com:3000'
+      BASE_URL: 'https://vitamind.alexodle.com'
     }
   }
 }

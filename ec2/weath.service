@@ -1,0 +1,14 @@
+[Unit]
+Description=Weather webserver
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=ubuntu
+WorkingDirectory=/home/ubuntu/code/vitamind
+ExecStart=/usr/bin/env npm run start
+
+[Install]
+WantedBy=multi-user.target
