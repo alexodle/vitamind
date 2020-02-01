@@ -7,6 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=ubuntu
+EnvironmentFile=/home/ubuntu/code/vitamind/prod.env
 WorkingDirectory=/home/ubuntu/code/vitamind
 ExecStart=/usr/bin/env npm run start
 
