@@ -21,7 +21,7 @@ GAINED_CITIES_EMAIL_TMPL = '''\
 <body>
 <b>%(email)s</b>,
 <p>You have new opportunities for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true"><b>Check them out here</b></a></p>
+<p><a href="%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true"><b>Check them out here</b></a></p>
 <br/>
 - VitaminD
 </body>
@@ -29,7 +29,7 @@ GAINED_CITIES_EMAIL_TMPL = '''\
 GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 You have new opportunities for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
-Check them out here: https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+Check them out here: %(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
 
 - VitaminD'''
 
@@ -39,7 +39,7 @@ LOST_CITIES_EMAIL_TMPL = '''\
 <body>
 <b>%(email)s</b>,
 <p>We detected fewer opportunities than you had yesterday for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true">\
+<p><a href="%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true">\
 <b>Check them out here to make sure you don't need to change your plans</b>\
 </a></p>
 <br/>
@@ -49,8 +49,7 @@ LOST_CITIES_EMAIL_TMPL = '''\
 LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 We detected fewer opportunities than you had yesterday for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
-Check them out here to make sure you don't need to change your plans:\
-  https://vitamind.alexodle.com/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+Check them out here to make sure you don't need to change your plans: %(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
 
 - VitaminD'''
 
@@ -67,7 +66,7 @@ def send_alert(today, alert_row):
     html_tmpl = LOST_CITIES_EMAIL_TMPL
     plain_tmpl = LOST_CITIES_EMAIL_TMPL_PLAIN
 
-  tmpl_params = { 'email': email, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id}
+  tmpl_params = { 'base_url': os.environ['BASE_URL'], 'email': email, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id}
   body = html_tmpl % tmpl_params
   body_plain = plain_tmpl % tmpl_params
 

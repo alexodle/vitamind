@@ -1,17 +1,6 @@
-const { PHASE_DEVELOPMENT_SERVER } = require('next/constants')
-
-module.exports = (phase) => {
-  if (phase === PHASE_DEVELOPMENT_SERVER) {
-    return {
-      env: {
-        BASE_URL: 'http://localhost:3000'
-      }
-    }
-  }
-
-  return {
-    env: {
-      BASE_URL: 'https://vitamind.alexodle.com'
-    }
+module.exports = {
+  env: {
+    // Redefining BASE_URL here causes it to get replaced with a string at build-time
+    BASE_URL: process.env.BASE_URL
   }
 }
