@@ -10,6 +10,8 @@ VALID_DRIVE_HOURS = [4, 6, 8, 12, 20]
 # Important: Keep in sync with index.ts
 HARDCODED_DARK_CITIES = [
   ['Seattle', '5'],
+  ['Portland', '28'],
+  ['Spokane', '29'],
 ]
 
 

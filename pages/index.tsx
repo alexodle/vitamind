@@ -8,6 +8,8 @@ import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
 // TODO: generate from script
 const HARDCODED_DARK_CITIES = [
   ['Seattle', '5'],
+  ['Portland', '28'],
+  ['Spokane', '29'],
 ]
 const DEFAULT_CITY = '5' // Seattle
 
