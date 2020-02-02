@@ -13,9 +13,7 @@ const pool = new Pool({
 // pg-postgres uses the local timezone when converting dates from the DB. We want to normalize to always using the PST timezone.
 const WEST_COAST_OFFSET = 480
 function hackNormalizePgDate(d: Date): Date {
-  const m = moment(d)
-  m.utcOffset(WEST_COAST_OFFSET)
-  return m.toDate()
+  return moment(isoDate(d)).utcOffset(WEST_COAST_OFFSET, true).toDate()
 }
 
 function addDays(d: Date, days: number): Date {
@@ -64,10 +62,6 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
       isGoodDay: pfcr.good_days_csl.indexOf(isoDate(r.fc_date as Date)) !== -1
     }))
   }))
-
-  const exampleDate = pfcs[0].results[0].date as Date
-  console.log(exampleDate)
-  console.log('offset: ' + exampleDate.getTimezoneOffset())
 
   return pfcs
 }
