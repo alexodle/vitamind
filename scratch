@@ -1,4 +1,0 @@
-# distance query
-SELECT *, ST_Distance(ST_Transform(loc, 2163), ST_Transform(ST_SetSRID(ST_MakePoint(-122.33207,47.60621), 4326), 2163))/1609.34 as dist_from_sea
-FROM city
-WHERE ST_Distance(ST_Transform(loc, 2163), ST_Transform(ST_SetSRID(ST_MakePoint(-122.33207,47.60621), 4326), 2163)) <= 1000 * 1609.34

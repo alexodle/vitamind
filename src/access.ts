@@ -2,12 +2,21 @@ import { groupBy } from 'lodash'
 import { Pool } from 'pg'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { City, ProcessedForecast } from './types'
+import moment from 'moment'
 
 const NDAYS = 6
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_CONNECTION_STR_NODE
 })
+
+// pg-postgres uses the local timezone when converting dates from the DB. We want to normalize to always using the PST timezone.
+const WEST_COAST_OFFSET = 480
+function hackNormalizePgDate(d: Date): Date {
+  const m = moment(d)
+  m.utcOffset(WEST_COAST_OFFSET)
+  return m.toDate()
+}
 
 function addDays(d: Date, days: number): Date {
   const newDate = new Date(d.valueOf())
@@ -45,7 +54,7 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
     maxConsecutiveGoodDays: pfcr.max_consecutive_good_days,
     driveTimeMinutes: pfcr.gmap_drive_time_minutes,
     results: fcResultsByCity[pfcr.city_id].map(r => ({
-      date: r.fc_date,
+      date: hackNormalizePgDate(r.fc_date),
       mintemp: r.mintemp,
       maxtemp: r.maxtemp,
       maxfeel: r.maxfeel,
@@ -55,6 +64,10 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
       isGoodDay: pfcr.good_days_csl.indexOf(isoDate(r.fc_date as Date)) !== -1
     }))
   }))
+
+  const exampleDate = pfcs[0].results[0].date as Date
+  console.log(exampleDate)
+  console.log('offset: ' + exampleDate.getTimezoneOffset())
 
   return pfcs
 }

@@ -43,7 +43,7 @@ def read_cities(today):
     with psycopg2.connect(conn_str) as conn:
         with conn.cursor() as cur:
             cur.execute('''
-                SELECT id, name, ST_AsText(loc) city_latlon 
+                SELECT id, name, ST_AsText(loc) city_latlon
                 FROM city
                 WHERE id NOT IN (
                     SELECT DISTINCT(city_id)
