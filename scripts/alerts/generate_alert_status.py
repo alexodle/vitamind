@@ -2,17 +2,11 @@ import psycopg2
 import sys
 import os
 from collections import defaultdict
+import db_constants
 
 
 # IMPORTANT: Keep in sync with constants.ts
-VALID_DRIVE_HOURS = [4, 6, 8, 12, 20]
-
-# Important: Keep in sync with index.ts
-HARDCODED_DARK_CITIES = [
-  ['Seattle', '5'],
-  ['Portland', '28'],
-  ['Spokane', '29'],
-]
+VALID_DRIVE_HOURS = set([4, 6, 8, 12, 20])
 
 
 conn_str = os.environ['POSTGRES_CONNECTION_STR']
@@ -52,8 +46,7 @@ def generate_alert_status():
 
   with conn:
     with conn.cursor() as cur:
-      for city_name, city_cid_str in HARDCODED_DARK_CITIES:
-        city_cid = int(city_cid_str)
+      for city_name, city_cid in db_constants.HARDCODED_DARK_CITIES:
         for drive_time_hours in VALID_DRIVE_HOURS:
           drive_time_mins = drive_time_hours * 60
 

@@ -23,6 +23,7 @@
     "typescript": "^3.7.2"
   },
   "scripts": {
+    "gen": "mkdir -p gen && python scripts/export_db_constants.py gen/",
     "dev": "next",
     "build": "next build",
     "start": "next start"

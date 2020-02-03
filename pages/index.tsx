@@ -3,15 +3,8 @@ import Head from 'next/head'
 import Router from 'next/router'
 import { parseCookies, setCookie } from 'nookies'
 import { SyntheticEvent, useState } from 'react'
+import { DEFAULT_CITY, HARDCODED_DARK_CITIES } from '../gen/ts/db_constants'
 import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
-
-// TODO: generate from script
-const HARDCODED_DARK_CITIES = [
-  ['Seattle', '5'],
-  ['Portland', '28'],
-  ['Spokane', '29'],
-]
-const DEFAULT_CITY = '5' // Seattle
 
 export interface IndexProps {
   defaultCityID?: number
@@ -19,8 +12,8 @@ export interface IndexProps {
 }
 
 const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
-  const [cityID, setCityID] = useState(defaultCityID ? defaultCityID.toString() : DEFAULT_CITY)
-  const [driveHours, setDriveHours] = useState(defaultDriveHours ? defaultDriveHours.toString() : DEFAULT_DRIVE_HOURS.toString())
+  const [cityID, setCityID] = useState((defaultCityID || DEFAULT_CITY).toString())
+  const [driveHours, setDriveHours] = useState((defaultDriveHours || DEFAULT_DRIVE_HOURS).toString())
   const [isQuerying, setIsQuerying] = useState(false)
 
   const onSubmit = (ev: SyntheticEvent) => {
@@ -45,7 +38,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
           <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
             {HARDCODED_DARK_CITIES.map(([name, cid]) =>
-              <option key={cid} value={cid}>{name}</option>
+              <option key={cid} value={cid.toString()}>{name}</option>
             )}
           </select>
         </label>
