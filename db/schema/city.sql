@@ -6,9 +6,7 @@
 CREATE TABLE city (
     id SERIAL PRIMARY KEY,
     name text NOT NULL UNIQUE,
-    loc geometry(Point,4326) NOT NULL
+    loc geometry(Point,4326) NOT NULL,
+    forecast boolean NOT NULL DEFAULT false,
+    selectable boolean NOT NULL DEFAULT false
 );
-
--- Indices -------------------------------------------------------
-
-CREATE UNIQUE INDEX city_name_key ON city(name text_ops);

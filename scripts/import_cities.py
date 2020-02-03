@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import csv
+import sys
 
 
 conn_str = os.environ['POSTGRES_CONNECTION_STR']
@@ -28,5 +29,5 @@ def read_cities(fp):
 
 
 if __name__ == '__main__':
-    cities = read_cities('../latlon.csv')
+    cities = read_cities(sys.argv[1])
     insert_all_cities(cities)

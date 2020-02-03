@@ -78,7 +78,8 @@ def process_forecasts():
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
-        SELECT DISTINCT(city_id), city.name FROM forecast
+        SELECT DISTINCT(city_id), city.name
+        FROM forecast
         JOIN city ON city.id = city_id
         WHERE date_forecasted = %s AND city_id NOT IN (
           SELECT city_id FROM processed_forecast WHERE date_forecasted = %s

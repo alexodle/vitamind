@@ -45,7 +45,7 @@ def read_cities(today):
             cur.execute('''
                 SELECT id, name, ST_AsText(loc) city_latlon
                 FROM city
-                WHERE id NOT IN (
+                WHERE forecast = TRUE AND id NOT IN (
                     SELECT DISTINCT(city_id)
                     FROM forecast
                     WHERE date_forecasted = %s
