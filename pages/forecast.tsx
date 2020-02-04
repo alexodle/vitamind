@@ -2,10 +2,13 @@ import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { FunctionComponent } from 'react'
+import { FunctionComponent, useState, SyntheticEvent } from 'react'
 import { Alert } from '../src/components/alert'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
+
+export interface ForecastProps extends WeathResult {
+}
 
 const IMG_SRC = 'imgs'
 
@@ -127,10 +130,12 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
   )
 }
 
-interface ForecastProps extends WeathResult {
-}
-
 const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
+  const [isCreatingAlert, setIsCreatingAlert] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitResult, setSubmitResult] = useState<null | 'error' | 'success'>(null)
+  const [alertEmail, setAlertEmail] = useState('')
+
   normalizeWeathResults(props.forecasts)
   normalizeWeathResults(props.forecastsOutsideRadius)
 
@@ -164,12 +169,77 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
     )
   }
 
+  async function onSetAlert(ev: SyntheticEvent) {
+    ev.preventDefault()
+
+    setIsSubmitting(true)
+
+    const data = {
+      cityID: props.city.id,
+      driveHours: props.driveHoursRequested,
+      email: alertEmail,
+    }
+    try {
+      const res = await fetch(process.env.BASE_URL + `/api/user_alert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        setSubmitResult('error')
+        return
+      }
+      setSubmitResult('success')
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(e)
+      }
+      setSubmitResult('error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function renderAlertForm() {
+    return (
+      <form className='alert-form'>
+        <label htmlFor='email'>Enter your email:
+          <input type='email' name='email' id='email' value={alertEmail} onChange={e => setAlertEmail(e.target.value)} disabled={isSubmitting} />
+        </label>
+        <button type='submit' onClick={onSetAlert} disabled={isSubmitting || !alertEmail}>Set alert</button>
+        <style jsx>{`
+        .alert-form label {
+          display: inline-block
+        }
+        .alert-form button {
+          display: inline-block
+        }
+        `}</style>
+      </form>
+    )
+  }
+
+  function renderAlertSubmitResult() {
+    if (!submitResult) return null
+    return (
+      <Alert status={submitResult}>
+        {submitResult === 'success' ? 'Alert saved!' : 'Failed to set alert. Please try again.'}
+      </Alert>
+    )
+  }
+
   return (
     <div>
       <Head>
         <title>VitaminD - let's get some</title>
       </Head>
-      <Link href="/"><a>Change search</a></Link>
+      {renderAlertSubmitResult()}
+      <Link href="/"><a>Change your search</a></Link>
+      <div>
+        {isCreatingAlert ? renderAlertForm() : (
+          <a href="" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlert(true); }}>Create alert for this</a>
+        )}
+      </div>
       {renderBody()}
     </div>
   )

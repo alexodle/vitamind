@@ -20,6 +20,7 @@ export interface ProcessedForecast {
 export interface City {
   id: number
   name: string
+  selectable: string
 }
 
 // API

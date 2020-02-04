@@ -67,7 +67,7 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
 }
 
 export async function getCity(id: number): Promise<City | null> {
-  const targetCityResults = await pool.query(`SELECT id, name FROM city WHERE id = $1`, [id])
+  const targetCityResults = await pool.query(`SELECT id, name, selectable FROM city WHERE id = $1`, [id])
   if (targetCityResults.rowCount < 1) return null
   return targetCityResults.rows[0]
 }
@@ -92,4 +92,16 @@ export async function getRecommendationsForCity(targetCityID: number, limit: num
   `, [dateForecasted, targetCityID, MAX_DRIVE_MINUTES, limit])
 
   return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
+}
+
+export async function createUserAlert(cityID: number, driveHours: number, email: string) {
+  await pool.query(`INSERT INTO users(email) VALUES($1) ON CONFLICT (email) DO NOTHING;`, [email])
+  const userID = (await pool.query(`SELECT id FROM users WHERE email = $1;`, [email])).rows[0].id
+
+  await pool.query(`
+    INSERT INTO user_alert(user_id, city_id, max_drive_minutes)
+    VALUES($1, $2, $3)
+    ON CONFLICT(user_id, city_id) DO UPDATE SET
+      active = TRUE,
+      max_drive_minutes = $3;`, [userID, cityID, driveHours * 60])
 }
