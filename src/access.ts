@@ -94,7 +94,7 @@ export async function getRecommendationsForCity(targetCityID: number, limit: num
   return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
 }
 
-export async function createUserAlert(cityID: number, driveHours: number, email: string) {
+export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number) {
   await pool.query(`INSERT INTO users(email) VALUES($1) ON CONFLICT (email) DO NOTHING;`, [email])
   const userID = (await pool.query(`SELECT id FROM users WHERE email = $1;`, [email])).rows[0].id
 
@@ -104,4 +104,8 @@ export async function createUserAlert(cityID: number, driveHours: number, email:
     ON CONFLICT(user_id, city_id) DO UPDATE SET
       active = TRUE,
       max_drive_minutes = $3;`, [userID, cityID, driveHours * 60])
+}
+
+export async function deactivateUserAlertByUniqueID(uniqueID: string) {
+  await pool.query(`UPDATE user_alert SET active = FALSE WHERE unique_id = $1`, [uniqueID])
 }

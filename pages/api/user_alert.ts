@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createUserAlert } from "../../src/access";
+import { createOrUpdateUserAlert } from "../../src/access";
 import { InvalidRequestError } from "../../src/errors";
 import { createRequestHandler } from "../../src/RequestHandler";
 
@@ -13,7 +13,7 @@ async function post(req: NextApiRequest, res: NextApiResponse) {
     throw new InvalidRequestError()
   }
 
-  await createUserAlert(cityID, driveHours, email)
+  await createOrUpdateUserAlert(email, cityID, driveHours)
 
   res.status(201).send({})
 }

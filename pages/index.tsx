@@ -1,4 +1,4 @@
-import { NextPage } from 'next'
+import { NextPage, NextPageContext } from 'next'
 import Head from 'next/head'
 import Router from 'next/router'
 import { parseCookies, setCookie } from 'nookies'
@@ -64,7 +64,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
   )
 }
 
-Index.getInitialProps = (ctx): IndexProps => {
+Index.getInitialProps = (ctx: NextPageContext): IndexProps => {
   const cookies = parseCookies(ctx)
   if (!cookies.defaultCityID || !cookies.defaultDriveHours) {
     return {}
