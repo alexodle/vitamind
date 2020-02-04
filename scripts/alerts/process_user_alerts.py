@@ -24,6 +24,9 @@ GAINED_CITIES_EMAIL_TMPL = '''\
 <p><a href="%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true"><b>Check them out here</b></a></p>
 <br/>
 - VitaminD
+<br/>
+<br/>
+<a href="%(base_url)s/user_alert/unsubscribe/%(unique_id)s">Unusbscribe</a>
 </body>
 </html>'''
 GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
@@ -31,7 +34,10 @@ GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
 You have new opportunities for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
 Check them out here: %(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
 
-- VitaminD'''
+- VitaminD
+
+Navigate here to unsubscribe: %(base_url)s/user_alert/unsubscribe/%(unique_id)s
+'''
 
 LOST_CITIES_EMAIL_SUBJ = 'VitaminD alert - you lost some VitaminD opportunities'
 LOST_CITIES_EMAIL_TMPL = '''\
@@ -44,6 +50,9 @@ LOST_CITIES_EMAIL_TMPL = '''\
 </a></p>
 <br/>
 - VitaminD
+<br/>
+<br/>
+<a href="%(base_url)s/user_alert/unsubscribe/%(unique_id)s">Unusbscribe</a>
 </body>
 </html>'''
 LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
@@ -51,11 +60,14 @@ LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
 We detected fewer opportunities than you had yesterday for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
 Check them out here to make sure you don't need to change your plans: %(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
 
-- VitaminD'''
+- VitaminD
+
+Navigate here to unsubscribe: %(base_url)s/user_alert/unsubscribe/%(unique_id)s
+'''
 
 
 def send_alert(today, alert_row):
-  _, email, city_id, city_name, max_drive_minutes, cities_gained_csl, _, _ = alert_row
+  _, email, alert_unique_id, city_id, city_name, max_drive_minutes, cities_gained_csl, _, _ = alert_row
 
   if cities_gained_csl:
     subj = GAINED_CITIES_EMAIL_SUBJ
@@ -66,7 +78,7 @@ def send_alert(today, alert_row):
     html_tmpl = LOST_CITIES_EMAIL_TMPL
     plain_tmpl = LOST_CITIES_EMAIL_TMPL_PLAIN
 
-  tmpl_params = { 'base_url': os.environ['BASE_URL'], 'email': email, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id}
+  tmpl_params = { 'base_url': os.environ['BASE_URL'], 'email': email, 'unique_id': alert_unique_id, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id}
   body = html_tmpl % tmpl_params
   body_plain = plain_tmpl % tmpl_params
 
@@ -81,7 +93,7 @@ def send_alert(today, alert_row):
 
 
 def process_alert(today, alert_row):
-  user_alert_id, email, _, _, _, _, _, did_change = alert_row
+  user_alert_id, email, _, _, _, _, _, _, did_change = alert_row
   with conn:
     with conn.cursor() as cur:
       if did_change:
@@ -105,7 +117,7 @@ def process_user_alerts():
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
-        SELECT user_alert.id user_alert_id, email, user_alert.city_id city_id, city.name city_name, user_alert.max_drive_minutes max_drive_minutes, cities_gained_csl, cities_lost_csl, did_change
+        SELECT user_alert.id user_alert_id, email, user_alert.unique_id unique_id, user_alert.city_id city_id, city.name city_name, user_alert.max_drive_minutes max_drive_minutes, cities_gained_csl, cities_lost_csl, did_change
         FROM user_alert
         JOIN users ON user_id = users.id
         JOIN city ON user_alert.city_id = city.id
@@ -114,7 +126,7 @@ def process_user_alerts():
           user_alert.max_drive_minutes = alert_status.max_drive_minutes AND
           end_date_forecasted = %s
         )
-        WHERE user_alert.id NOT IN (
+        WHERE user_alert.active = TRUE AND user_alert.id NOT IN (
           SELECT user_alert_id
           FROM user_alert_instance
           WHERE
