@@ -13,7 +13,7 @@ async function del(req: NextApiRequest, res: NextApiResponse) {
     throw new InvalidRequestError()
   }
 
-  deactivateUserAlertByUniqueID(uniqueID)
+  await deactivateUserAlertByUniqueID(uniqueID)
 
   res.status(204).send({})
 }
