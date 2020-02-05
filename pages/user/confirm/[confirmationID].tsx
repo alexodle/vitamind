@@ -3,32 +3,82 @@ import { NextPage, NextPageContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { Alert } from '../../../src/components/alert'
+import { NotFoundErrorStatus, InvalidRequestErrorStatus } from '../../../src/errors'
+import { SyntheticEvent, useState } from 'react'
 
 export interface EmailConfirmationProps {
-  status: 'error' | 'success'
+  status: 'error' | 'success' | 'toolate'
+  confirmationID: string
 }
 
-const EmailConfirmation: NextPage<EmailConfirmationProps> = ({ status }) => (
-  <div>
-    <Head>
-      <title>VitaminD - let's get some</title>
-    </Head>
-    <Link href="/"><a>Go home</a></Link>
-    <Alert status={status}>
-      {status === 'success' ? 'Email confirmed' : 'Something went wrong... Try the link in your email again.'}
+const EmailConfirmation: NextPage<EmailConfirmationProps> = ({ status, confirmationID }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitResult, setSubmitResult] = useState<null | 'success' | 'error'>(null)
+
+  async function resendEmail(ev: SyntheticEvent) {
+    ev.preventDefault()
+
+    setIsSubmitting(true)
+
+    try {
+      const res = await fetch(process.env.BASE_URL + `/api/user/confirm/${confirmationID}`, { method: 'DELETE' })
+      setSubmitResult(res.ok ? 'success' : 'error')
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(e)
+      }
+      setSubmitResult('error')
+    }
+  }
+
+  const renderResendAlert = (): string | JSX.Element => (
+    <Alert status={submitResult!}>
+      {submitResult === 'success' ? 'Check your email. Confirmation resent.' : 'Something went wrong. Try refreshing the page.'}
     </Alert>
-  </div>
-)
+  )
+
+  const renderAlert = (): string | JSX.Element => {
+    let body: string | JSX.Element
+    if (status === 'success') {
+      body = 'Email confirmed'
+    } else if (status === 'error') {
+      body = 'Something went wrong... Try the link in your email again, or try signing up for another alert.'
+    } else {
+      body = (
+        <span>This link is too old. <button onClick={resendEmail} disabled={isSubmitting}>Click here to resend the confirmation email</button></span>
+      )
+    }
+    return (
+      <Alert status={status === 'success' ? 'success' : 'error'}>{body}</Alert>
+    )
+  }
+
+  return (
+    <div>
+      <Head>
+        <title>VitaminD - let's get some</title>
+      </Head>
+      <Link href="/"><a>Go home</a></Link>
+      {submitResult === null ? renderAlert() : renderResendAlert()}
+    </div>
+  )
+}
 
 EmailConfirmation.getInitialProps = async (ctx: NextPageContext): Promise<EmailConfirmationProps> => {
   const confirmationID = ctx.query.confirmationID as string
   try {
     const res = await fetch(process.env.BASE_URL + `/api/user/confirm/${confirmationID}`, { method: 'PUT' })
-    return { status: res.ok ? 'success' : 'error' }
+    if (res.ok) {
+      return { status: 'success', confirmationID: confirmationID }
+    } else if (res.status === InvalidRequestErrorStatus) {
+      // past the grace period
+      return { status: 'toolate', confirmationID: confirmationID }
+    }
   } catch (e) {
     console.error(e)
-    return { status: 'error' }
   }
+
+  return { status: 'error', confirmationID: confirmationID }
 }
 
 export default EmailConfirmation

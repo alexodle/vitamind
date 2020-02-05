@@ -7,7 +7,8 @@ CREATE TABLE users (
     id integer DEFAULT nextval('user_id_seq'::regclass) PRIMARY KEY,
     email text,
     email_conf_uuid uuid DEFAULT uuid_generate_v4(),
-    email_confirmed boolean NOT NULL DEFAULT false
+    email_confirmed boolean NOT NULL DEFAULT false,
+    email_conf_uuid_last_updated TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Indices -------------------------------------------------------

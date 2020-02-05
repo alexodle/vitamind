@@ -1,3 +1,21 @@
+export interface User {
+  id: number
+  email: string
+  email_confirmed: bool
+
+  // secret
+  email_conf_uuid?: string
+}
+
+export interface UserAlert {
+  user_id: number
+  city_id: number
+  max_drive_minutes: number
+
+  // secret
+  unique_id?: string
+}
+
 export interface ProcessedDailyForecast extends DailyForecast {
   date: Date | string
   mintemp: number
@@ -35,4 +53,9 @@ export interface WeathResult {
 
   // Included if there were 0 forecasts within the radius
   forecastsOutsideRadius: ProcessedForecast[]
+}
+
+export interface PostUserAlertResult {
+  user: User
+  userAlert: UserAlert
 }

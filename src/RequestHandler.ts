@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import { InvalidRequestError, NotFoundError } from "./errors"
+import { InvalidRequestError, NotFoundError, InvalidRequestErrorStatus, NotFoundErrorStatus } from "./errors"
 
 export interface HandlerFunc {
   (req: NextApiRequest, res: NextApiResponse): Promise<void>
@@ -17,15 +17,15 @@ export function createRequestHandler(spec: HandlerSpec) {
     const method = (req.method || '').toLowerCase() as 'get' | 'post' | 'put' | 'delete'
     const methodHandler = spec[method]
     if (!methodHandler) {
-      return res.status(404).json({ error: `not found: ${req.method}` })
+      return res.status(NotFoundErrorStatus).json({ error: `not found: ${req.method}` })
     }
     try {
       await methodHandler(req, res)
     } catch (e) {
       if (e instanceof NotFoundError) {
-        res.status(404).json({ error: 'not found' })
+        res.status(NotFoundErrorStatus).json({ error: 'not found' })
       } else if (e instanceof InvalidRequestError) {
-        res.status(400).json({ error: 'invalid request' })
+        res.status(InvalidRequestErrorStatus).json({ error: 'invalid request' })
       } else {
         console.error(e)
         if (process.env.NODE_ENV !== 'production') {

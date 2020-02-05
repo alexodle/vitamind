@@ -2,10 +2,10 @@ import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { FunctionComponent, useState, SyntheticEvent } from 'react'
+import { FunctionComponent, SyntheticEvent, useState } from 'react'
 import { Alert } from '../src/components/alert'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
-import { ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
+import { ProcessedDailyForecast, ProcessedForecast, WeathResult, PostUserAlertResult } from '../src/types'
 
 export interface ForecastProps extends WeathResult {
 }
@@ -133,7 +133,7 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
 const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   const [isCreatingAlert, setIsCreatingAlert] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitResult, setSubmitResult] = useState<null | 'error' | 'success'>(null)
+  const [submitResult, setSubmitResult] = useState<null | 'error' | 'success' | 'verifying'>(null)
   const [alertEmail, setAlertEmail] = useState('')
 
   normalizeWeathResults(props.forecasts)
@@ -189,7 +189,8 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
         setSubmitResult('error')
         return
       }
-      setSubmitResult('success')
+      const result: PostUserAlertResult = await res.json()
+      setSubmitResult(result.user.email_confirmed ? 'success' : 'verifying')
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         console.error(e)
@@ -221,9 +222,21 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
 
   function renderAlertSubmitResult() {
     if (!submitResult) return null
+    let text: string
+    switch (submitResult) {
+      case 'error':
+        text = 'Something went wrong. Try again.'
+        break
+      case 'success':
+        text = 'Alert saved!'
+        break
+      case 'verifying':
+        text = 'Alert saved! Just need to check your email so we can verify it\'s you.'
+        break
+    }
     return (
-      <Alert status={submitResult}>
-        {submitResult === 'success' ? 'Alert saved!' : 'Failed to set alert. Please try again.'}
+      <Alert status={submitResult === 'error' ? 'error' : 'success'}>
+        {text}
       </Alert>
     )
   }

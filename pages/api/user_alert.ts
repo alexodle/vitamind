@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { createOrUpdateUserAlert } from "../../src/access";
 import { InvalidRequestError } from "../../src/errors";
 import { createRequestHandler } from "../../src/RequestHandler";
+import { PostUserAlertResult } from "../../src/types";
 
 async function post(req: NextApiRequest, res: NextApiResponse) {
   // TODO validate email
@@ -13,9 +14,10 @@ async function post(req: NextApiRequest, res: NextApiResponse) {
     throw new InvalidRequestError()
   }
 
-  await createOrUpdateUserAlert(email, cityID, driveHours)
+  const [user, userAlert] = await createOrUpdateUserAlert(email, cityID, driveHours)
 
-  res.status(201).send({})
+  const result: PostUserAlertResult = { user, userAlert }
+  res.status(201).send(result)
 }
 
 export default createRequestHandler({ post })

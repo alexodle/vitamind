@@ -1,13 +1,14 @@
 import { groupBy } from 'lodash'
+import moment from 'moment'
 import { Pool } from 'pg'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
-import { City, ProcessedForecast } from './types'
-import moment from 'moment'
+import { sendConfirmationEmail } from './email_conf_access'
 import { NotFoundError } from './errors'
+import { City, ProcessedForecast, User, UserAlert } from './types'
 
 const NDAYS = 6
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.POSTGRES_CONNECTION_STR_NODE
 })
 
@@ -67,10 +68,20 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
   return pfcs
 }
 
-export async function getCity(id: number): Promise<City | null> {
-  const targetCityResults = await pool.query(`SELECT id, name, selectable FROM city WHERE id = $1`, [id])
-  if (targetCityResults.rowCount < 1) return null
-  return targetCityResults.rows[0]
+export async function getUser(id: number): Promise<User> {
+  const result = await pool.query(`SELECT id, email, email_confirmed FROM users WHERE id = $1;`, [id])
+  if (result.rows.length < 1) {
+    throw new NotFoundError()
+  }
+  return result.rows[0]
+}
+
+export async function getCity(id: number): Promise<City> {
+  const result = await pool.query(`SELECT id, name, selectable FROM city WHERE id = $1`, [id])
+  if (result.rows.length < 1) {
+    throw new NotFoundError()
+  }
+  return result.rows[0]
 }
 
 export async function getRecommendationsForCity(targetCityID: number, limit: number): Promise<ProcessedForecast[]> {
@@ -95,26 +106,27 @@ export async function getRecommendationsForCity(targetCityID: number, limit: num
   return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
 }
 
-export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number) {
+export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number): Promise<[User, UserAlert]> {
   await pool.query(`INSERT INTO users(email) VALUES($1) ON CONFLICT (email) DO NOTHING;`, [email])
-  const userID = (await pool.query(`SELECT id FROM users WHERE email = $1;`, [email])).rows[0].id
+  const user: User = (await pool.query(`SELECT id, email, email_confirmed FROM users WHERE email = $1;`, [email])).rows[0]
 
   await pool.query(`
     INSERT INTO user_alert(user_id, city_id, max_drive_minutes)
     VALUES($1, $2, $3)
     ON CONFLICT(user_id, city_id) DO UPDATE SET
       active = TRUE,
-      max_drive_minutes = $3;`, [userID, cityID, driveHours * 60])
-}
+      max_drive_minutes = $3;`, [user.id, cityID, driveHours * 60])
+  const userAlert: UserAlert = (await pool.query(`
+    SELECT user_id, city_id, max_drive_minutes
+    FROM user_alert
+    WHERE  user_id = $1`, [user.id])).rows[0]
 
-export async function confirmUser(confirmationUUID: string) {
-  const result = await pool.query(`
-    UPDATE users
-    SET email_confirmed = TRUE
-    WHERE email_conf_uuid = $1;`, [confirmationUUID])
-  if (result.rowCount === 0) {
-    throw new NotFoundError()
+  if (!user.email_confirmed) {
+    // Fire and forget
+    sendConfirmationEmail(user.id)
   }
+
+  return [user, userAlert]
 }
 
 export async function deactivateUserAlertByUniqueID(uniqueID: string) {
