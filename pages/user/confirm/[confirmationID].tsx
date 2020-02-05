@@ -2,9 +2,9 @@ import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { Alert } from '../../../src/components/alert'
-import { NotFoundErrorStatus, InvalidRequestErrorStatus } from '../../../src/errors'
 import { SyntheticEvent, useState } from 'react'
+import { Alert } from '../../../src/components/alert'
+import { InvalidRequestErrorStatus } from '../../../src/errors'
 
 export interface EmailConfirmationProps {
   status: 'error' | 'success' | 'toolate'

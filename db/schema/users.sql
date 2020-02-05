@@ -14,3 +14,5 @@ CREATE TABLE users (
 -- Indices -------------------------------------------------------
 
 CREATE UNIQUE INDEX user_email_idx ON users(email text_ops);
+CREATE UNIQUE INDEX users_email_conf_uuid_idx ON users(email_conf_uuid uuid_ops);
+CREATE INDEX users_email_conf_uuid_email_conf_uuid_last_updated_idx ON users(email_conf_uuid uuid_ops,email_conf_uuid_last_updated timestamptz_ops);
