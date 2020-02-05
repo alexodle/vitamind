@@ -4,26 +4,26 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { Alert } from '../../../src/components/alert'
 
-export interface UnsubscribeProps {
+export interface EmailConfirmationProps {
   status: 'error' | 'success'
 }
 
-const Unsubscribe: NextPage<UnsubscribeProps> = ({ status }) => (
+const EmailConfirmation: NextPage<EmailConfirmationProps> = ({ status }) => (
   <div>
     <Head>
       <title>VitaminD - let's get some</title>
     </Head>
     <Link href="/"><a>Go home</a></Link>
     <Alert status={status}>
-      {status === 'success' ? 'Unsubscribed' : 'Failed to unsubscribe from user alerts. Please try again by refreshing this page.'}
+      {status === 'success' ? 'Email confirmed' : 'Something went wrong... Try the link in your email again.'}
     </Alert>
   </div>
 )
 
-Unsubscribe.getInitialProps = async (ctx: NextPageContext): Promise<UnsubscribeProps> => {
-  const uniqueID = ctx.query.uniqueID as string
+EmailConfirmation.getInitialProps = async (ctx: NextPageContext): Promise<EmailConfirmationProps> => {
+  const confirmationID = ctx.query.confirmationID as string
   try {
-    const res = await fetch(process.env.BASE_URL + `/api/user_alert/${uniqueID}`, { method: 'DELETE' })
+    const res = await fetch(process.env.BASE_URL + `/api/user/confirm/${confirmationID}`, { method: 'PUT' })
     return { status: res.ok ? 'success' : 'error' }
   } catch (e) {
     console.error(e)
@@ -31,4 +31,4 @@ Unsubscribe.getInitialProps = async (ctx: NextPageContext): Promise<UnsubscribeP
   }
 }
 
-export default Unsubscribe
+export default EmailConfirmation

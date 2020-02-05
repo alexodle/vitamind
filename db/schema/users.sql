@@ -4,10 +4,12 @@
 -- Table Definition ----------------------------------------------
 
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    email text
+    id integer DEFAULT nextval('user_id_seq'::regclass) PRIMARY KEY,
+    email text,
+    email_conf_uuid uuid DEFAULT uuid_generate_v4(),
+    email_confirmed boolean NOT NULL DEFAULT false
 );
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX users_email_idx ON users(email text_ops);
+CREATE UNIQUE INDEX user_email_idx ON users(email text_ops);

@@ -3,6 +3,7 @@ import { Pool } from 'pg'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { City, ProcessedForecast } from './types'
 import moment from 'moment'
+import { NotFoundError } from './errors'
 
 const NDAYS = 6
 
@@ -104,6 +105,16 @@ export async function createOrUpdateUserAlert(email: string, cityID: number, dri
     ON CONFLICT(user_id, city_id) DO UPDATE SET
       active = TRUE,
       max_drive_minutes = $3;`, [userID, cityID, driveHours * 60])
+}
+
+export async function confirmUser(confirmationUUID: string) {
+  const result = await pool.query(`
+    UPDATE users
+    SET email_confirmed = TRUE
+    WHERE email_conf_uuid = $1;`, [confirmationUUID])
+  if (result.rowCount === 0) {
+    throw new NotFoundError()
+  }
 }
 
 export async function deactivateUserAlertByUniqueID(uniqueID: string) {

@@ -126,7 +126,7 @@ def process_user_alerts():
           user_alert.max_drive_minutes = alert_status.max_drive_minutes AND
           end_date_forecasted = %s
         )
-        WHERE user_alert.active = TRUE AND user_alert.id NOT IN (
+        WHERE user.email_confirmed = TRUE AND user_alert.active = TRUE AND user_alert.id NOT IN (
           SELECT user_alert_id
           FROM user_alert_instance
           WHERE
