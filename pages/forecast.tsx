@@ -6,8 +6,11 @@ import { FunctionComponent, SyntheticEvent, useState } from 'react'
 import { Alert } from '../src/components/alert'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { ProcessedDailyForecast, ProcessedForecast, WeathResult, PostUserAlertResult } from '../src/types'
+import { parseCookies, setCookie } from 'nookies'
+import { isValidEmail } from '../src/util'
 
 export interface ForecastProps extends WeathResult {
+  defaultEmail: string
 }
 
 const IMG_SRC = 'imgs'
@@ -134,7 +137,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   const [isCreatingAlert, setIsCreatingAlert] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<null | 'error' | 'success' | 'verifying'>(null)
-  const [alertEmail, setAlertEmail] = useState('')
+  const [alertEmail, setAlertEmail] = useState(props.defaultEmail)
 
   normalizeWeathResults(props.forecasts)
   normalizeWeathResults(props.forecastsOutsideRadius)
@@ -173,6 +176,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
     ev.preventDefault()
 
     setIsSubmitting(true)
+    setCookie(null, 'email', alertEmail, {})
 
     const data = {
       cityID: props.city.id,
@@ -207,7 +211,11 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
         <label htmlFor='email'>Enter your email:
           <input type='email' name='email' id='email' value={alertEmail} onChange={e => setAlertEmail(e.target.value)} disabled={isSubmitting} />
         </label>
-        <button type='submit' onClick={onSetAlert} disabled={isSubmitting || !alertEmail}>Set alert</button>
+        <button
+          type='submit'
+          onClick={onSetAlert}
+          disabled={isSubmitting || !isValidEmail(alertEmail)}
+        >Set alert</button>
         <style jsx>{`
         .alert-form label {
           display: inline-block
@@ -259,6 +267,9 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
 }
 
 Forecast.getInitialProps = async (ctx): Promise<ForecastProps> => {
+  const cookies = parseCookies(ctx)
+  const defaultEmail = isValidEmail(cookies.email) ? cookies.email as string : ""
+
   const cityID = ctx.query.cityID as string
   const driveHours = ctx.query.driveHours as string
   const res = await fetch(process.env.BASE_URL + `/api/weath?driveHours=${driveHours}&cityID=${cityID}`)
@@ -266,7 +277,7 @@ Forecast.getInitialProps = async (ctx): Promise<ForecastProps> => {
     throw new Error((await res.json()).error)
   }
   const result: WeathResult = await res.json()
-  return result
+  return { ...result, defaultEmail }
 }
 
 export default Forecast
