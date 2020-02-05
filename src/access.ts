@@ -123,7 +123,15 @@ export async function createOrUpdateUserAlert(email: string, cityID: number, dri
 
   if (!user.email_confirmed) {
     // Fire and forget
-    sendConfirmationEmail(user.id)
+    (async () => {
+      try {
+        await sendConfirmationEmail(user.id)
+        console.log(`Sent confirmation email to: ${email}`)
+      } catch (e) {
+        console.error(`Failed to send confirmation email to: ${email}`)
+        console.error(e)
+      }
+    })()
   }
 
   return [user, userAlert]
