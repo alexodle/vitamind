@@ -9,7 +9,7 @@ export const Alert: FunctionComponent<AlertProps> = ({ status, children }) => (
     {children}
     <style jsx>{`
       .alert {
-        margin: 20px 10px 20px 10px;
+        margin: 20px 0 20px 0;
         border: 1px solid transparent;
         border-radius: 5px;
         padding: 10px;

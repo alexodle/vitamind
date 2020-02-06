@@ -1,9 +1,9 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
-import Head from 'next/head'
 import Link from 'next/link'
 import { SyntheticEvent, useState } from 'react'
 import { Alert } from '../../../src/components/Alert'
+import { Layout } from '../../../src/components/Layout'
 import { InvalidRequestErrorStatus } from '../../../src/errors'
 
 export interface EmailConfirmationProps {
@@ -54,13 +54,10 @@ const EmailConfirmation: NextPage<EmailConfirmationProps> = ({ status, confirmat
   }
 
   return (
-    <div>
-      <Head>
-        <title>VitaminD - let's get some</title>
-      </Head>
-      <Link href="/"><a>Go home</a></Link>
+    <Layout>
       {submitResult === null ? renderAlert() : renderResendAlert()}
-    </div>
+      <Link href="/"><a>Go home</a></Link>
+    </Layout>
   )
 }
 

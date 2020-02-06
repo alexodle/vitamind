@@ -30,7 +30,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
 
   return (
     <Layout>
-      <form>
+      <form className='index-form'>
         <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
           <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
             {HARDCODED_DARK_CITIES.map(([name, cid]) =>
@@ -48,12 +48,16 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         <button type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
       </form>
       <style jsx>{`
+      .index-form {
+      }
       label {
         display: block;
         margin-bottom: 15px;
+        font-size: larger;
       }
       select {
         display: block;
+        font-size: larger;
       }
       `}</style>
     </Layout>

@@ -1,23 +1,20 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
-import Head from 'next/head'
 import Link from 'next/link'
 import { Alert } from '../../../src/components/Alert'
+import { Layout } from '../../../src/components/Layout'
 
 export interface UnsubscribeProps {
   status: 'error' | 'success'
 }
 
 const Unsubscribe: NextPage<UnsubscribeProps> = ({ status }) => (
-  <div>
-    <Head>
-      <title>VitaminD - let's get some</title>
-    </Head>
-    <Link href="/"><a>Go home</a></Link>
+  <Layout>
     <Alert status={status}>
       {status === 'success' ? 'Unsubscribed' : 'Failed to unsubscribe from user alerts. Please try again by refreshing this page.'}
     </Alert>
-  </div>
+    <Link href="/"><a>Go home</a></Link>
+  </Layout>
 )
 
 Unsubscribe.getInitialProps = async (ctx: NextPageContext): Promise<UnsubscribeProps> => {
