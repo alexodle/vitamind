@@ -99,7 +99,8 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
       </div>
     ))}
     <style jsx>{`
-      .city-forecast {
+      .daily-forecast-list {
+        padding-inline-start: 0;
       }
 
       .daily-forecast-list li {

@@ -30,32 +30,44 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
 
   return (
     <Layout>
-      <form className='index-form'>
-        <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
+      <section>
+        <form className='index-form'>
+          <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
           <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
-            {HARDCODED_DARK_CITIES.map(([name, cid]) =>
-              <option key={cid} value={cid.toString()}>{name}</option>
-            )}
-          </select>
-        </label>
-        <label htmlFor='driveHours'>How far will you drive?
+              {HARDCODED_DARK_CITIES.map(([name, cid]) =>
+                <option key={cid} value={cid.toString()}>{name}</option>
+              )}
+            </select>
+          </label>
+          <label htmlFor='driveHours'>How far will you drive?
           <select id='driveHours' name='driveHours' value={driveHours} onChange={ev => setDriveHours(ev.target.value)} disabled={isQuerying}>
-            {VALID_DRIVE_HOURS.map(h =>
-              <option key={h} value={h.toString()}>{h} hours</option>
-            )}
-          </select>
-        </label>
-        <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
-      </form>
-      <div className='map-container'>
-        <h3>We're adding more cities every day</h3>
+              {VALID_DRIVE_HOURS.map(h =>
+                <option key={h} value={h.toString()}>{h} hours</option>
+              )}
+            </select>
+          </label>
+          <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
+        </form>
+      </section>
+      <section>
+        <h2>What is VitaminD?</h2>
+        <p>
+          VitaminD is a simple service that helps people living in cold, dark cities find some sun.{' '}
+          Tell us where you live and how far you're willing to drive and we'll show you fun cities you can visit that will be getting sun and/or warmth within the next 6 days.
+        </p>
+        <p><small>Weather forecasts are provided by <a href="https://darksky.net/" target="_blank">DarkSky</a>, and driving distances are based on <a href="https://www.google.com/maps" target="_blank">Google Maps</a> sans traffic.</small></p>
+      </section>
+      <section>
+        <h2>Your city isn't listed?</h2>
+        <p>Check back soon. We're adding more cities every day.</p>
         <figure>
-          <iframe src="https://www.google.com/maps/d/embed?mid=1QNbxhPjW0O_lLzKbg7J0YZZYR5X8Qp05&hl=en" width="640" height="480" />
+          <iframe className='gmaps-iframe' src="https://www.google.com/maps/d/embed?mid=1QNbxhPjW0O_lLzKbg7J0YZZYR5X8Qp05&hl=en" />
           <figcaption>Coverage as of <b>02-05-2019</b></figcaption>
         </figure>
-      </div>
+      </section>
       <style jsx>{`
-      .index-form {
+      section {
+        margin-bottom: 40px;
       }
       label {
         display: block;
@@ -69,20 +81,19 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
       }
       button.submit {
         font-size: large;
-        background-color: none;
+        background-color: #e0e0e0;
         border: gray 1px solid;
         border-radius: 10px;
         padding: 10px;
         cursor: pointer;
       }
-      .map-container {
-        margin-top: 30px;
-      }
       figure {
         margin: 0;
       }
-      iframe {
+      .gmaps-iframe {
         border: 0;
+        width: 100%;
+        height: 480px;
       }
       .city-map {
         width: 657px;
