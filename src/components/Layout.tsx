@@ -4,7 +4,7 @@ import { FunctionComponent } from "react";
 
 export const Layout: FunctionComponent<{}> = ({ children }) => (
   <div className='container'>
-    <Head>
+    <Head key='layout-head'>
       <title>VitaminD - get some</title>
       <meta charSet="utf-8" />
       <meta
@@ -12,12 +12,13 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
       />
       <link
+        href="https://fonts.googleapis.com/css?family=IBM+Plex+Serif&display=swap"
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
       />
     </Head>
     <h1><Link href="/"><a className='unstyled'>VitaminD <em>get some</em></a></Link></h1>
     {children}
+
     <style jsx>{`
       .container {
         margin: auto;
@@ -31,6 +32,12 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         .container {
           width: 100%;
         }
+      }
+    `}</style>
+
+    <style jsx global>{`
+      body {
+        font-family: 'IBM Plex Serif', serif;
       }
     `}</style>
   </div>

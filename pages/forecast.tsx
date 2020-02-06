@@ -100,12 +100,12 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
     ))}
     <style jsx>{`
       .city-forecast {
-        margin-bottom: 20px;
       }
 
       .daily-forecast-list li {
         display: inline-block;
         margin-right: 20px;
+        margin-bottom: 20px;
       }
     `}</style>
   </div>
@@ -208,10 +208,10 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   function renderAlertForm() {
     return (
       <form className='alert-form'>
-        <label htmlFor='email'>Enter your email:
+        <label htmlFor='email'>Enter your email:{' '}
           <input type='email' name='email' id='email' value={alertEmail} onChange={e => setAlertEmail(e.target.value)} disabled={isSubmitting} />
         </label>
-        <button
+        {' '}<button
           type='submit'
           onClick={onSetAlert}
           disabled={isSubmitting || !isValidEmail(alertEmail)}
