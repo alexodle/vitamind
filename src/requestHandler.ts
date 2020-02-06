@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import { InvalidRequestError, NotFoundError, InvalidRequestErrorStatus, NotFoundErrorStatus } from "./errors"
+import { InvalidRequestError, InvalidRequestErrorStatus, NotFoundError, NotFoundErrorStatus } from "./errors"
 
 export interface HandlerFunc {
   (req: NextApiRequest, res: NextApiResponse): Promise<void>

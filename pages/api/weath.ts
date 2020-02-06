@@ -2,9 +2,9 @@ import { partition } from 'lodash';
 import { NextApiRequest, NextApiResponse } from "next";
 import { getCity, getRecommendationsForCity } from '../../src/access';
 import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from "../../src/constants";
-import { createRequestHandler } from '../../src/RequestHandler';
-import { ProcessedForecast, WeathResult } from "../../src/types";
 import { InvalidRequestError, NotFoundError } from '../../src/errors';
+import { createRequestHandler } from '../../src/requestHandler';
+import { ProcessedForecast, WeathResult } from "../../src/types";
 
 const DEFAULT_LIMIT = 5
 

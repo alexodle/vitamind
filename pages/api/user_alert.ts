@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createOrUpdateUserAlert } from "../../src/access";
 import { InvalidRequestError } from "../../src/errors";
-import { createRequestHandler } from "../../src/RequestHandler";
+import { createRequestHandler } from "../../src/requestHandler";
 import { PostUserAlertResult } from "../../src/types";
 import { isValidEmail } from "../../src/util";
 

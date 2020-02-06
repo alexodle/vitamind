@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { confirmUserEmail, resendConfirmationEmail } from "../../../../src/email_conf_access";
-import { createRequestHandler } from "../../../../src/RequestHandler";
+import { createRequestHandler } from "../../../../src/requestHandler";
 
 async function confirmEmail(req: NextApiRequest, res: NextApiResponse) {
   const confirmationID = req.query.confirmationID as string

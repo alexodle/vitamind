@@ -3,7 +3,7 @@ import { NextPage, NextPageContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { SyntheticEvent, useState } from 'react'
-import { Alert } from '../../../src/components/alert'
+import { Alert } from '../../../src/components/Alert'
 import { InvalidRequestErrorStatus } from '../../../src/errors'
 
 export interface EmailConfirmationProps {

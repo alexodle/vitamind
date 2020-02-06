@@ -2,7 +2,7 @@ import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { Alert } from '../../../src/components/alert'
+import { Alert } from '../../../src/components/Alert'
 
 export interface UnsubscribeProps {
   status: 'error' | 'success'

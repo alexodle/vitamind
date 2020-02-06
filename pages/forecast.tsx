@@ -1,12 +1,12 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
-import Head from 'next/head'
 import Link from 'next/link'
-import { FunctionComponent, SyntheticEvent, useState } from 'react'
-import { Alert } from '../src/components/alert'
-import { MAX_DRIVE_MINUTES } from '../src/constants'
-import { ProcessedDailyForecast, ProcessedForecast, WeathResult, PostUserAlertResult } from '../src/types'
 import { parseCookies, setCookie } from 'nookies'
+import { FunctionComponent, SyntheticEvent, useState } from 'react'
+import { Alert } from '../src/components/Alert'
+import { Layout } from '../src/components/Layout'
+import { MAX_DRIVE_MINUTES } from '../src/constants'
+import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
 import { isValidEmail } from '../src/util'
 
 export interface ForecastProps extends WeathResult {
@@ -124,10 +124,10 @@ const OutsideOfRadiusForecastsView: FunctionComponent<ForecastProps> = ({ driveH
   )
 }
 
-const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, forecasts }) => {
+const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, forecasts }) => {
   return (
     <div>
-      <h2>VitaminD (within {driveHoursRequested} hours drive)</h2>
+      <h2>VitaminD within {driveHoursRequested} hour drive of {city.name}</h2>
       {renderForecasts(forecasts)}
     </div>
   )
@@ -250,19 +250,17 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   }
 
   return (
-    <div>
-      <Head>
-        <title>VitaminD - let's get some</title>
-      </Head>
+    <Layout>
       {renderAlertSubmitResult()}
       <Link href="/"><a>Change your search</a></Link>
+      <br /><br />
       <div>
         {isCreatingAlert ? renderAlertForm() : (
           <a href="" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlert(true); }}>Create alert for this</a>
         )}
       </div>
       {renderBody()}
-    </div>
+    </Layout>
   )
 }
 

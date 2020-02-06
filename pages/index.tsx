@@ -1,9 +1,9 @@
 import { NextPage, NextPageContext } from 'next'
-import Head from 'next/head'
 import Router from 'next/router'
 import { parseCookies, setCookie } from 'nookies'
 import { SyntheticEvent, useState } from 'react'
 import { DEFAULT_CITY, HARDCODED_DARK_CITIES } from '../gen/ts/db_constants'
+import { Layout } from '../src/components/Layout'
 import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
 
 export interface IndexProps {
@@ -29,11 +29,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
   }
 
   return (
-    <div>
-      <Head>
-        <title>VitaminD - let's get some</title>
-      </Head>
-      <h1> VitaminD <em>let's get some</em></h1 >
+    <Layout>
       <form>
         <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
           <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
@@ -60,7 +56,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         display: block;
       }
       `}</style>
-    </div >
+    </Layout>
   )
 }
 

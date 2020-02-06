@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { deactivateUserAlertByUniqueID } from "../../../src/access";
 import { InvalidRequestError } from "../../../src/errors";
-import { createRequestHandler } from "../../../src/RequestHandler";
+import { createRequestHandler } from "../../../src/requestHandler";
 
 function isUniqueID(maybeUuid: string) {
   return maybeUuid.indexOf('-') !== -1
