@@ -25,7 +25,7 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
     <style jsx>{`
       .container {
         margin: auto;
-        width: 750px;
+        width: 900px;
       }
       a.unstyled {
         text-decoration: none;
