@@ -81,6 +81,9 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
       figure {
         margin: 0;
       }
+      iframe {
+        border: 0;
+      }
       .city-map {
         width: 657px;
         height: 343px;
