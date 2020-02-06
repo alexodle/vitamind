@@ -6,7 +6,7 @@ import { InvalidRequestError, NotFoundError } from '../../src/errors';
 import { createRequestHandler } from '../../src/requestHandler';
 import { ProcessedForecast, WeathResult } from "../../src/types";
 
-const DEFAULT_LIMIT = 5
+const DEFAULT_LIMIT = 10
 
 function safeGetDriveHours(req: NextApiRequest): number {
   let driveHours = DEFAULT_DRIVE_HOURS
