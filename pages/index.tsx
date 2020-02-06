@@ -48,9 +48,9 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
       </form>
       <div className='map-container'>
-        <h2>We're adding more cities every day</h2>
+        <h3>We're adding more cities every day</h3>
         <figure>
-          <img className='city-map' src='/imgs/city_map_full.png' alt='City coverage map' />
+          <iframe src="https://www.google.com/maps/d/embed?mid=1QNbxhPjW0O_lLzKbg7J0YZZYR5X8Qp05&hl=en" width="640" height="480" />
           <figcaption>Coverage as of <b>02-05-2019</b></figcaption>
         </figure>
       </div>
