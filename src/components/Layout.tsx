@@ -27,6 +27,11 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         text-decoration: none;
         color: inherit;
       }
+      @media only screen and (max-width: 812px) {
+        .container {
+          width: 100%;
+        }
+      }
     `}</style>
   </div>
 )

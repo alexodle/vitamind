@@ -45,19 +45,28 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
             )}
           </select>
         </label>
-        <button type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
+        <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
       </form>
       <style jsx>{`
       .index-form {
       }
       label {
         display: block;
-        margin-bottom: 15px;
-        font-size: larger;
+        margin-bottom: 20px;
       }
       select {
         display: block;
-        font-size: larger;
+        font-size: large;
+        margin-top: 10px;
+        width: 10em;
+      }
+      button.submit {
+        font-size: large;
+        background-color: none;
+        border: gray 1px solid;
+        border-radius: 10px;
+        padding: 10px;
+        cursor: pointer;
       }
       `}</style>
     </Layout>
