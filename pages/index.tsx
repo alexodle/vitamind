@@ -52,7 +52,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
       <section>
         <h2>What is VitaminD?</h2>
         <p>
-          VitaminD is a simple service that helps people living in cold, dark cities find some sun.{' '}
+          VitaminD is a service that helps people living in cold, dark cities find sun within driving distance.{' '}
           Tell us where you live and how far you're willing to drive and we'll show you fun cities you can visit that will be getting sun and/or warmth within the next 6 days.
         </p>
         <p><small>Weather forecasts are provided by <a href="https://darksky.net/" target="_blank">DarkSky</a>, and driving distances are based on <a href="https://www.google.com/maps" target="_blank">Google Maps</a> sans traffic.</small></p>
