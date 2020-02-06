@@ -47,6 +47,13 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         </label>
         <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
       </form>
+      <div className='map-container'>
+        <h2>We're adding more cities every day</h2>
+        <figure>
+          <img className='city-map' src='/imgs/city_map_full.png' alt='City coverage map' />
+          <figcaption>Coverage as of <b>02-05-2019</b></figcaption>
+        </figure>
+      </div>
       <style jsx>{`
       .index-form {
       }
@@ -67,6 +74,19 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         border-radius: 10px;
         padding: 10px;
         cursor: pointer;
+      }
+      .map-container {
+        margin-top: 30px;
+      }
+      figure {
+        margin: 0;
+      }
+      .city-map {
+        width: 657px;
+        height: 343px;
+        padding: 2px;
+        border: gray 1px solid;
+        border-radius: 10px;
       }
       `}</style>
     </Layout>
