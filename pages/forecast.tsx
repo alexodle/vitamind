@@ -116,7 +116,7 @@ const OutsideOfRadiusForecastsView: FunctionComponent<ForecastProps> = ({ driveH
   return (
     <div>
       <Alert status='info'>
-        No VitaminD was found within {driveHoursRequested} hours of {city.name}.
+        No VitaminD was found within a {driveHoursRequested} hour of {city.name}.
         Showing results for {MAX_DRIVE_MINUTES / 60} hours.
       </Alert>
       <h2>VitaminD within a {MAX_DRIVE_MINUTES / 60} hour drive of {city.name}</h2>
@@ -128,7 +128,7 @@ const OutsideOfRadiusForecastsView: FunctionComponent<ForecastProps> = ({ driveH
 const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, forecasts }) => {
   return (
     <div>
-      <h2>VitaminD within {driveHoursRequested} hour drive of {city.name}</h2>
+      <h2>VitaminD within a {driveHoursRequested} hour drive of {city.name}</h2>
       {renderForecasts(forecasts)}
     </div>
   )

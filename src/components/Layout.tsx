@@ -18,6 +18,9 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
     </Head>
     <h1><Link href="/"><a className='unstyled'>VitaminD <em>get some</em></a></Link></h1>
     {children}
+    <footer>
+      <p><small>Weather forecasts are provided by <a href="https://darksky.net/" target="_blank">DarkSky</a>, and driving distances are based on <a href="https://www.google.com/maps" target="_blank">Google Maps</a> sans traffic.</small></p>
+    </footer>
 
     <style jsx>{`
       .container {
@@ -40,5 +43,5 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         font-family: 'IBM Plex Serif', serif;
       }
     `}</style>
-  </div>
+  </div >
 )
