@@ -19,7 +19,7 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
     <h1><Link href="/"><a className='unstyled'>VitaminD <em>get some</em></a></Link></h1>
     {children}
     <footer>
-      <p><small>Weather forecasts are provided by <a href="https://darksky.net/" target="_blank">DarkSky</a>, and driving distances are based on <a href="https://www.google.com/maps" target="_blank">Google Maps</a> sans traffic.</small></p>
+      <p><small>Weather forecasts provided by <a href="https://darksky.net/" target="_blank">DarkSky</a>. Driving distances provided by <a href="https://www.google.com/maps" target="_blank">Google Maps</a>.</small></p>
     </footer>
 
     <style jsx>{`

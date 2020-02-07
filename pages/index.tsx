@@ -52,8 +52,8 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
       <section>
         <h2>What is VitaminD?</h2>
         <p>
-          VitaminD is a service that helps people living in cold, dark cities find sun within driving distance.{' '}
-          Tell us where you live and how far you're willing to drive and we'll show you fun cities you can visit that will be getting sun and/or warmth within the next 6 days.
+          VitaminD helps you find sun within driving distance. Tell us where you live and how far you're willing to drive{' '}
+          and we'll show you fun cities you can visit that are forecasted to get sun in the next 6 days.
         </p>
       </section>
       <section>
