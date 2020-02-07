@@ -1,9 +1,25 @@
-import { pool, getUser } from './access';
-import { NotFoundError, InvalidRequestError } from './errors';
+import nodemailer from 'nodemailer';
+import { pool } from './access';
+import { InvalidRequestError, NotFoundError } from './errors';
+import { requireEnv } from './nodeUtils';
 import { User } from './types';
 
 // Users have GRACE_TIME_MINS to confirm email
-const GRACE_TIME_MINS = 10;
+const GRACE_TIME_MINS = 10
+
+const EMAIL_SUBJECT = 'VitaminD - confirm your email'
+const EMAIL_DISPLAY_NAME = 'VitaminD'
+const EMAIL_FROM = requireEnv('EMAIL_FROM')
+
+const mailer = nodemailer.createTransport({
+  host: requireEnv('EMAIL_HOST'),
+  port: 465,
+  secure: true,
+  auth: {
+    user: requireEnv('EMAIL_USER'),
+    pass: requireEnv('EMAIL_PW'),
+  }
+})
 
 const buildHTMLEmail = (user: User) => `<html>
 <body>
@@ -23,12 +39,6 @@ Navigate to the following URL to confirm your email: ${process.env.BASE_URL}/use
 
 - VitaminD
 `
-
-const sendEmail = require('gmail-send')({
-  user: process.env.CONFIRM_EMAIL,
-  pass: process.env.CONFIRM_EMAIL_PW,
-  subject: 'VitaminD - confirm your email',
-});
 
 async function getUserIDByConfirmationUUID(confirmationUUID: string): Promise<number> {
   const result = await pool.query(`SELECT id FROM users WHERE email_conf_uuid = $1;`, [confirmationUUID])
@@ -57,10 +67,12 @@ export async function sendConfirmationEmail(userID: number) {
   }
 
   const user: User = result.rows[0]
-  sendEmail({
+  await mailer.sendMail({
+    from: `"${EMAIL_DISPLAY_NAME}" <${EMAIL_FROM}>`,
     to: user.email,
-    html: buildHTMLEmail(user),
+    subject: EMAIL_SUBJECT,
     text: buildTextEmail(user),
+    html: buildHTMLEmail(user),
   })
 }
 

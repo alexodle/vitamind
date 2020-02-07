@@ -10,10 +10,14 @@ from email.mime.multipart import MIMEMultipart
 conn_str = os.environ['POSTGRES_CONNECTION_STR']
 conn = psycopg2.connect(conn_str)
 
-email_from = os.environ['ALERT_EMAIL']
-email_pw = os.environ['ALERT_EMAIL_PW']
-server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+email_host = os.environ['EMAIL_HOST']
+email_user = os.environ['EMAIL_USER']
+email_pw = os.environ['EMAIL_PW']
+email_from = os.environ['EMAIL_FROM']
 
+server = smtplib.SMTP_SSL(email_host, 465)
+
+EMAIL_DISPLAY_NAME = 'VitaminD'
 
 GAINED_CITIES_EMAIL_SUBJ = 'VitaminD alert - new VitaminD opportunities detected!'
 GAINED_CITIES_EMAIL_TMPL = '''\
@@ -84,7 +88,7 @@ def send_alert(today, alert_row):
 
   message = MIMEMultipart("alternative")
   message["Subject"] = subj
-  message["From"] = email_from
+  message["From"] = '%s <%s>' % (EMAIL_DISPLAY_NAME, email_from)
   message["To"] = email
   message.attach(MIMEText(body_plain, "plain"))
   message.attach(MIMEText(body, "html"))
@@ -113,7 +117,8 @@ def process_alert(today, alert_row):
 
 
 def process_user_alerts():
-  today = date.today()
+  #today = date.today()
+  today = date(2020, 2, 2)
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
@@ -141,7 +146,7 @@ def process_user_alerts():
 
 if __name__ == '__main__':
   try:
-    server.login(email_from, email_pw)
+    server.login(email_user, email_pw)
     process_user_alerts()
   finally:
     server.close()

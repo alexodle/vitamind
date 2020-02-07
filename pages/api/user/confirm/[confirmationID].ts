@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { confirmUserEmail, resendConfirmationEmail } from "../../../../src/email_conf_access";
+import { confirmUserEmail, resendConfirmationEmail } from "../../../../src/emailConfAccess";
 import { createRequestHandler } from "../../../../src/requestHandler";
 
 async function confirmEmail(req: NextApiRequest, res: NextApiResponse) {

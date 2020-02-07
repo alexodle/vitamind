@@ -2,14 +2,15 @@ import { groupBy } from 'lodash'
 import moment from 'moment'
 import { Pool } from 'pg'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
-import { sendConfirmationEmail } from './email_conf_access'
+import { sendConfirmationEmail } from './emailConfAccess'
 import { NotFoundError } from './errors'
+import { requireEnv } from './nodeUtils'
 import { City, ProcessedForecast, User, UserAlert } from './types'
 
 const NDAYS = 6
 
 export const pool = new Pool({
-  connectionString: process.env.POSTGRES_CONNECTION_STR_NODE
+  connectionString: requireEnv('POSTGRES_CONNECTION_STR_NODE')
 })
 
 // pg-postgres uses the local timezone when converting dates from the DB. We want to normalize to always using the PST timezone.
