@@ -61,7 +61,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours }) => {
         <p>Check back soon. We're adding more cities every day.</p>
         <figure>
           <iframe className='gmaps-iframe' src="https://www.google.com/maps/d/embed?mid=1QNbxhPjW0O_lLzKbg7J0YZZYR5X8Qp05&hl=en" />
-          <figcaption>Coverage as of <b>02-05-2019</b></figcaption>
+          <figcaption>Coverage as of <b>02-07-2020</b></figcaption>
         </figure>
       </section>
       <style jsx>{`
