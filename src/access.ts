@@ -5,7 +5,7 @@ import { MAX_DRIVE_MINUTES } from '../src/constants'
 import { sendConfirmationEmail } from './emailConfAccess'
 import { NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
-import { City, ProcessedForecast, User, UserAlert } from './types'
+import { City, ProcessedForecast, User, UserAlert, WeathType } from './types'
 
 const NDAYS = 6
 
@@ -53,17 +53,22 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
     city: pfcr.city_name,
     recommended: pfcr.is_recommended,
     maxConsecutiveGoodDays: pfcr.max_consecutive_good_days,
+    maxConsecutiveWarmDays: pfcr.max_consecutive_warm_days,
     driveTimeMinutes: pfcr.gmap_drive_time_minutes,
-    results: fcResultsByCity[pfcr.city_id].map(r => ({
-      date: hackNormalizePgDate(r.fc_date),
-      mintemp: r.mintemp,
-      maxtemp: r.maxtemp,
-      maxfeel: r.maxfeel,
-      minfeel: r.minfeel,
-      cloudcover: r.cloudcover,
-      rainpct: r.rainpct,
-      isGoodDay: pfcr.good_days_csl.indexOf(isoDate(r.fc_date as Date)) !== -1
-    }))
+    results: fcResultsByCity[pfcr.city_id].map(r => {
+      const isoFCDate = isoDate(r.fc_date)
+      return {
+        date: hackNormalizePgDate(r.fc_date),
+        mintemp: r.mintemp,
+        maxtemp: r.maxtemp,
+        maxfeel: r.maxfeel,
+        minfeel: r.minfeel,
+        cloudcover: r.cloudcover,
+        rainpct: r.rainpct,
+        isGoodDay: pfcr.good_days_csl.indexOf(isoFCDate) !== -1,
+        isWarmDay: pfcr.warm_days_csl.indexOf(isoFCDate) !== -1,
+      }
+    })
   }))
 
   return pfcs
@@ -85,21 +90,24 @@ export async function getCity(id: number): Promise<City> {
   return result.rows[0]
 }
 
-export async function getRecommendationsForCity(targetCityID: number, limit: number): Promise<ProcessedForecast[]> {
+export async function getRecommendationsForCity(targetCityID: number, weathType: WeathType, limit: number): Promise<ProcessedForecast[]> {
   const dateForecasted = await getLatestForecastDate()
 
   if (process.env.NODE_ENV !== 'production') {
-    console.log('Query params:' + [dateForecasted, targetCityID, limit])
+    console.log('Query params:' + [dateForecasted, targetCityID, weathType, limit])
   }
 
+  const goodDayProp = weathType === 'sunny' ? 'is_recommended' : 'is_recommended_warm'
   const processedFcResults = await pool.query(`
     SELECT
-      city.id AS city_id, city.name AS city_name, date_forecasted, max_consecutive_good_days, is_recommended, good_days_csl, ndays,
+      city.id AS city_id, city.name AS city_name, date_forecasted, ndays,
+      max_consecutive_good_days, is_recommended, good_days_csl,
+      max_consecutive_warm_days, is_recommended_warm, warm_days_csl,
       ctt.gmap_drive_time_minutes AS gmap_drive_time_minutes
     FROM processed_forecast pf
     JOIN city ON city.id = pf.city_id
     JOIN city_travel_time_all ctt ON ctt.city_from_id = $2 AND ctt.city_to_id = pf.city_id
-    WHERE date_forecasted = $1 AND is_recommended = TRUE AND ctt.gmap_drive_time_minutes <= $3
+    WHERE ${goodDayProp} = TRUE AND date_forecasted = $1 AND ctt.gmap_drive_time_minutes <= $3
     ORDER BY ctt.gmap_drive_time_minutes ASC
     LIMIT $4;
   `, [dateForecasted, targetCityID, MAX_DRIVE_MINUTES, limit])

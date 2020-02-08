@@ -25,6 +25,7 @@ export interface ProcessedDailyForecast extends DailyForecast {
   cloudcover: number
   rainpct: number
   isGoodDay: boolean
+  isWarmDay: boolean
 }
 
 export interface ProcessedForecast {
@@ -32,6 +33,7 @@ export interface ProcessedForecast {
   results: ProcessedDailyForecast[]
   recommended: boolean
   maxConsecutiveGoodDays: number
+  maxConsecutiveWarmDays: number
   driveTimeMinutes: number
 }
 
@@ -43,10 +45,13 @@ export interface City {
 
 // API
 
+export type WeathType = 'sunny' | 'warm'
+
 export interface WeathResult {
   forecasts: ProcessedForecast[]
   city: City
   limit: number
+  weathType: WeathType,
 
   driveHoursRequested: number
   minimumDriveHours: number

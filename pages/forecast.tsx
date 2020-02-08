@@ -2,7 +2,7 @@ import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
 import Link from 'next/link'
 import { parseCookies, setCookie } from 'nookies'
-import { FunctionComponent, SyntheticEvent, useState } from 'react'
+import { FunctionComponent, SyntheticEvent, useState, Fragment } from 'react'
 import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
@@ -125,14 +125,51 @@ const OutsideOfRadiusForecastsView: FunctionComponent<ForecastProps> = ({ driveH
   )
 }
 
-const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, forecasts }) => {
+const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, weathType, forecasts, }) => {
   return (
     <div>
-      <h2>VitaminD within a {driveHoursRequested} hour drive of {city.name}</h2>
+      <h2><u>{weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'}</u> within a <u>{driveHoursRequested}</u> hour drive of <u>{city.name}</u></h2>
       {renderForecasts(forecasts)}
     </div>
   )
 }
+
+const renderSadFace = () => (
+  <div className='sad-face-wrapper'>
+    <span className='sad-face'>:(</span>
+    <style jsx>{`
+    .sad-face-wrapper {
+      position: fixed;
+      text-align: center;
+      top: 50%;
+      left: 50%;
+      font-size: 2em;
+      transform: translate(-50%, -50%);
+    }
+    .sad-face {
+      display: block;
+      font-size: 3em;
+      padding: 20px;
+    }
+  `}</style>
+  </div>
+)
+
+const renderBody = (props: ForecastProps) => (
+  <div>
+    {props.forecasts.length ? <ForecastsView {...props} /> : (
+      <Fragment>
+        <Alert status='info'>
+          No VitaminD was found within a {props.driveHoursRequested} hour of {props.city.name}.
+          Showing results for {MAX_DRIVE_MINUTES / 60} hours.
+        </Alert>
+        {!props.forecastsOutsideRadius.length ? renderSadFace() : (
+          <ForecastsView {...props} forecasts={props.forecastsOutsideRadius} driveHoursRequested={MAX_DRIVE_MINUTES / 60} />
+        )}
+      </Fragment>
+    )}
+  </div>
+)
 
 const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   const [isCreatingAlert, setIsCreatingAlert] = useState(false)
@@ -142,36 +179,6 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
 
   normalizeWeathResults(props.forecasts)
   normalizeWeathResults(props.forecastsOutsideRadius)
-
-  function renderBody() {
-    if (props.forecasts.length) {
-      return <ForecastsView {...props} />
-    } else if (props.forecastsOutsideRadius.length) {
-      return <OutsideOfRadiusForecastsView {...props} />
-    }
-
-    return (
-      <div className='sad-face-wrapper'>
-        <span className='sad-face'>:(</span>
-        No VitaminD within a {MAX_DRIVE_MINUTES / 60} hour drive of {props.city.name}
-        <style jsx>{`
-          .sad-face-wrapper {
-            position: fixed;
-            text-align: center;
-            top: 50%;
-            left: 50%;
-            font-size: 2em;
-            transform: translate(-50%, -50%);
-          }
-          .sad-face {
-            display: block;
-            font-size: 3em;
-            padding: 20px;
-          }
-        `}</style>
-      </div>
-    )
-  }
 
   async function onSetAlert(ev: SyntheticEvent) {
     ev.preventDefault()
@@ -253,14 +260,23 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   return (
     <Layout>
       {renderAlertSubmitResult()}
-      <Link href="/"><a>Change your search</a></Link>
-      <br /><br />
-      <div>
-        {isCreatingAlert ? renderAlertForm() : (
-          <a href="" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlert(true); }}>Create alert for this</a>
-        )}
-      </div>
-      {renderBody()}
+      <section>
+        <Link href="/"><a>Change your search</a></Link>
+        <br /><br />
+        <div>
+          {isCreatingAlert ? renderAlertForm() : (
+            <a href="" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlert(true); }}>Create alert for this</a>
+          )}
+        </div>
+      </section>
+      <section>
+        {renderBody(props)}
+      </section>
+      <style jsx>{`
+        section {
+          margin-bottom: 40px;
+        }
+      `}</style>
     </Layout>
   )
 }
@@ -269,12 +285,12 @@ Forecast.getInitialProps = async (ctx): Promise<ForecastProps> => {
   const cookies = parseCookies(ctx)
   const defaultEmail = isValidEmail(cookies.email) ? cookies.email as string : ""
 
-  const cityID = ctx.query.cityID as string
-  const driveHours = ctx.query.driveHours as string
-  const res = await fetch(process.env.BASE_URL + `/api/weath?driveHours=${driveHours}&cityID=${cityID}`)
+  const { cityID, driveHours, weathType } = ctx.query
+  const res = await fetch(process.env.BASE_URL + `/api/weath?driveHours=${driveHours}&cityID=${cityID}&weathType=${weathType}`)
   if (!res.ok) {
     throw new Error((await res.json()).error)
   }
+
   const result: WeathResult = await res.json()
   return { ...result, defaultEmail }
 }
