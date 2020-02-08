@@ -6,7 +6,7 @@ import { FunctionComponent, SyntheticEvent, useState, Fragment } from 'react'
 import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
 import { MAX_DRIVE_MINUTES } from '../src/constants'
-import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult } from '../src/types'
+import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
 import { isValidEmail } from '../src/util'
 
 export interface ForecastProps extends WeathResult {
@@ -19,6 +19,8 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 function friendlyDay(day: number): string {
   return DAYS[day]
 }
+
+const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'
 
 function friendlyHoursText(driveTimeMinutes: number): string {
   const driveTimeHours = Math.floor(driveTimeMinutes / 60)
@@ -112,25 +114,13 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
   </div>
 )
 
-const OutsideOfRadiusForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, forecastsOutsideRadius }) => {
-  return (
-    <div>
-      <Alert status='info'>
-        No VitaminD was found within a {driveHoursRequested} hour of {city.name}.
-        Showing results for {MAX_DRIVE_MINUTES / 60} hours.
-      </Alert>
-      <h2>VitaminD within a {MAX_DRIVE_MINUTES / 60} hour drive of {city.name}</h2>
-      {renderForecasts(forecastsOutsideRadius)}
-    </div>
-  )
-}
-
 const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, weathType, forecasts, }) => {
   return (
     <div>
-      <h2><u>{weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'}</u> within a <u>{driveHoursRequested}</u> hour drive of <u>{city.name}</u></h2>
+      <h2>We found {forecasts.length} {forecasts.length === 1 ? 'destination' : 'destinations'}</h2>
+      <p style={{ marginBottom: '40px' }}><small><b>{friendlyWeathType(weathType)}</b> within a <b>{driveHoursRequested}</b> hour drive of <b>{city.name}</b></small></p>
       {renderForecasts(forecasts)}
-    </div>
+    </div >
   )
 }
 
