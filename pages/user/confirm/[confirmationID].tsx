@@ -40,7 +40,7 @@ const EmailConfirmation: NextPage<EmailConfirmationProps> = ({ status, confirmat
   const renderAlert = (): string | JSX.Element => {
     let body: string | JSX.Element
     if (status === 'success') {
-      body = 'Email confirmed'
+      body = 'Email confirmed. You are now signed up for alerts.'
     } else if (status === 'error') {
       body = 'Something went wrong... Try the link in your email again, or try signing up for another alert.'
     } else {

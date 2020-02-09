@@ -19,59 +19,59 @@ server = smtplib.SMTP_SSL(email_host, 465)
 
 EMAIL_DISPLAY_NAME = 'VitaminD'
 
-GAINED_CITIES_EMAIL_SUBJ = 'VitaminD alert - new VitaminD opportunities detected!'
+GAINED_CITIES_EMAIL_SUBJ = 'New VitaminD opportunities detected!'
 GAINED_CITIES_EMAIL_TMPL = '''\
 <html>
 <body>
 <b>%(email)s</b>,
-<p>You have new opportunities for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true"><b>Check them out here</b></a></p>
+<p>You have new opportunities for <b>%(weath_type)s weather</b> within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
+<p><a href="%(href)s"><b>Check them out here</b></a></p>
 <br/>
 - VitaminD
 <br/>
 <br/>
-<a href="%(base_url)s/user_alert/unsubscribe/%(unique_id)s">Unusbscribe</a>
+<a href="%(unsub_href)s">Unusbscribe</a>
 </body>
 </html>'''
 GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 You have new opportunities for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
-Check them out here: %(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+Check them out here: %(href)s
 
 - VitaminD
 
-Navigate here to unsubscribe: %(base_url)s/user_alert/unsubscribe/%(unique_id)s
+Unsubscribe here: %(unsub_href)s
 '''
 
-LOST_CITIES_EMAIL_SUBJ = 'VitaminD alert - you lost some VitaminD opportunities'
+LOST_CITIES_EMAIL_SUBJ = 'You lost some VitaminD opportunities :('
 LOST_CITIES_EMAIL_TMPL = '''\
 <html>
 <body>
 <b>%(email)s</b>,
 <p>We detected fewer opportunities than you had yesterday for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true">\
+<p><a href="%(href)s">\
 <b>Check them out here to make sure you don't need to change your plans</b>\
 </a></p>
 <br/>
 - VitaminD
 <br/>
 <br/>
-<a href="%(base_url)s/user_alert/unsubscribe/%(unique_id)s">Unusbscribe</a>
+<a href="%(unsub_href)s">Unusbscribe</a>
 </body>
 </html>'''
 LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 We detected fewer opportunities than you had yesterday for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
-Check them out here to make sure you don't need to change your plans: %(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&emailAlert=true
+Check them out here to make sure you don't need to change your plans: %(href)s
 
 - VitaminD
 
-Navigate here to unsubscribe: %(base_url)s/user_alert/unsubscribe/%(unique_id)s
+Navigate here to unsubscribe: %(unsub_href)s
 '''
 
 
 def send_alert(today, alert_row):
-  _, email, alert_unique_id, city_id, city_name, max_drive_minutes, cities_gained_csl, _, _ = alert_row
+  _, email, alert_unique_id, city_id, city_name, max_drive_minutes, weath_type, cities_gained_csl, _, _ = alert_row
 
   if cities_gained_csl:
     subj = GAINED_CITIES_EMAIL_SUBJ
@@ -82,7 +82,18 @@ def send_alert(today, alert_row):
     html_tmpl = LOST_CITIES_EMAIL_TMPL
     plain_tmpl = LOST_CITIES_EMAIL_TMPL_PLAIN
 
-  tmpl_params = { 'base_url': os.environ['BASE_URL'], 'email': email, 'unique_id': alert_unique_id, 'max_drive_hours': max_drive_minutes / 60, 'city_name': city_name, 'city_id': city_id}
+  tmpl_params = {
+    'base_url': os.environ['BASE_URL'],
+    'email': email,
+    'unique_id': alert_unique_id,
+    'max_drive_hours': max_drive_minutes / 60,
+    'weath_type': weath_type,
+    'city_name': city_name,
+    'city_id': city_id,
+    }
+  tmpl_params['href'] = '%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&weath_type=%(weath_type)s&emailAlert=true' % tmpl_params
+  tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(unique_id)s' % tmpl_params
+
   body = html_tmpl % tmpl_params
   body_plain = plain_tmpl % tmpl_params
 
@@ -97,7 +108,7 @@ def send_alert(today, alert_row):
 
 
 def process_alert(today, alert_row):
-  user_alert_id, email, _, _, _, _, _, _, did_change = alert_row
+  user_alert_id, email, _, _, _, _, _, _, _, did_change = alert_row
   with conn:
     with conn.cursor() as cur:
       if did_change:
@@ -117,18 +128,27 @@ def process_alert(today, alert_row):
 
 
 def process_user_alerts():
-  #today = date.today()
-  today = date(2020, 2, 2)
+  today = date.today()
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
-        SELECT user_alert.id user_alert_id, email, user_alert.unique_id unique_id, user_alert.city_id city_id, city.name city_name, user_alert.max_drive_minutes max_drive_minutes, cities_gained_csl, cities_lost_csl, did_change
+        SELECT
+          user_alert.id user_alert_id,
+          email, user_alert.unique_id unique_id,
+          user_alert.city_id city_id,
+          city.name city_name,
+          user_alert.max_drive_minutes max_drive_minutes,
+          user_alert.weath_type weath_type,
+          cities_gained_csl,
+          cities_lost_csl,
+          did_change
         FROM user_alert
         JOIN users ON user_id = users.id
         JOIN city ON user_alert.city_id = city.id
         JOIN alert_status ON (
           user_alert.city_id = alert_status.city_id AND
           user_alert.max_drive_minutes = alert_status.max_drive_minutes AND
+          user_alert.weath_type = alert_status.weath_type AND
           end_date_forecasted = %s
         )
         WHERE users.email_confirmed = TRUE AND user_alert.active = TRUE AND user_alert.id NOT IN (

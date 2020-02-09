@@ -11,6 +11,7 @@ export interface UserAlert {
   user_id: number
   city_id: number
   max_drive_minutes: number
+  weath_type: WeathType
 
   // secret
   unique_id?: string

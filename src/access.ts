@@ -115,20 +115,25 @@ export async function getRecommendationsForCity(targetCityID: number, weathType:
   return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
 }
 
-export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number): Promise<[User, UserAlert]> {
+export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number, weathType: WeathType): Promise<[User, UserAlert]> {
   await pool.query(`INSERT INTO users(email) VALUES($1) ON CONFLICT (email) DO NOTHING;`, [email])
   const user: User = (await pool.query(`SELECT id, email, email_confirmed FROM users WHERE email = $1;`, [email])).rows[0]
 
   await pool.query(`
-    INSERT INTO user_alert(user_id, city_id, max_drive_minutes)
-    VALUES($1, $2, $3)
+    INSERT INTO user_alert(user_id, city_id, max_drive_minutes, weath_type)
+    VALUES($1, $2, $3, $4)
     ON CONFLICT(user_id, city_id) DO UPDATE SET
       active = TRUE,
-      max_drive_minutes = $3;`, [user.id, cityID, driveHours * 60])
+      max_drive_minutes = $3,
+      weath_type = $4,
+      unique_id = uuid_generate_v4();
+    `, [user.id, cityID, driveHours * 60, weathType])
+
   const userAlert: UserAlert = (await pool.query(`
-    SELECT user_id, city_id, max_drive_minutes
+    SELECT user_id, city_id, max_drive_minutes, weath_type
     FROM user_alert
-    WHERE  user_id = $1`, [user.id])).rows[0]
+    WHERE  user_id = $1;
+    `, [user.id])).rows[0]
 
   if (!user.email_confirmed) {
     // Fire and forget

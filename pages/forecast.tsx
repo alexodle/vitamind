@@ -118,7 +118,7 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
   return (
     <div>
       <h2>We found {forecasts.length} {forecasts.length === 1 ? 'destination' : 'destinations'}</h2>
-      <p style={{ marginBottom: '30px', transform: 'translateY(-10px)' }}><small><b>{friendlyWeathType(weathType)}</b> within a <b>{driveHoursRequested}</b> hour drive of <b>{city.name}</b></small></p>
+      <p style={{ marginBottom: '30px', transform: 'translateY(-10px)' }}><small><b>{friendlyWeathType(weathType)}</b> within a <b>{driveHoursRequested} hour</b> drive of <b>{city.name}</b></small></p>
       {renderForecasts(forecasts)}
     </div >
   )
@@ -179,6 +179,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
     const data = {
       cityID: props.city.id,
       driveHours: props.driveHoursRequested,
+      weathType: props.weathType,
       email: alertEmail,
     }
     try {
