@@ -10,10 +10,11 @@ CREATE TABLE alert_status (
     cities_gained_csl text NOT NULL,
     cities_lost_csl text NOT NULL,
     did_change boolean NOT NULL,
-    max_drive_minutes integer NOT NULL
+    max_drive_minutes integer NOT NULL,
+    weath_type text NOT NULL
 );
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX alert_status_city_id_start_date_forecasted_end_date_forecasted_ ON alert_status(city_id int4_ops,start_date_forecasted date_ops,end_date_forecasted date_ops,max_drive_minutes int4_ops);
 CREATE INDEX alert_status_start_date_forecasted_end_date_forecasted_did_chan ON alert_status(start_date_forecasted date_ops,end_date_forecasted date_ops,did_change bool_ops);
+CREATE UNIQUE INDEX alert_status_unique_props_idx ON alert_status(city_id int4_ops,end_date_forecasted date_ops,max_drive_minutes int4_ops,weath_type text_ops);
