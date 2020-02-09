@@ -23,11 +23,10 @@ const mailer = nodemailer.createTransport({
 
 const buildHTMLEmail = (user: User) => `<html>
 <body>
-<p>${user.email},<br />
+<p>${user.email},<br /><br />
 You signed up to get alerts from VitaminD.
-<br />
+<br /><br />
 <a href="${process.env.BASE_URL}/user/confirm/${user.email_conf_uuid}">Click here to confirm your email and start receiving those alerts.</a></p>
-<br/>
 <br/>
 - VitaminD
 </body>

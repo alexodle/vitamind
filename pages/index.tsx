@@ -4,8 +4,9 @@ import { parseCookies, setCookie } from 'nookies'
 import { SyntheticEvent, useState } from 'react'
 import { DEFAULT_CITY, HARDCODED_DARK_CITIES } from '../gen/ts/db_constants'
 import { Layout } from '../src/components/Layout'
-import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS, VALID_WEATH_TYPES } from '../src/constants'
+import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
 import { WeathType } from '../src/types'
+import { isValidWeathType } from '../src/util'
 
 export interface IndexProps {
   defaultCityID?: number
@@ -132,7 +133,7 @@ Index.getInitialProps = (ctx: NextPageContext): IndexProps => {
     return {}
   }
 
-  if (VALID_WEATH_TYPES.indexOf(cookies.defaultWeathType as WeathType) !== -1) {
+  if (isValidWeathType(cookies.defaultWeathType as WeathType)) {
     result.defaultWeathType = cookies.defaultWeathType as WeathType
   }
 
