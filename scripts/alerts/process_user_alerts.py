@@ -117,8 +117,7 @@ def process_alert(today, alert_row):
 
 
 def process_user_alerts():
-  #today = date.today()
-  today = date(2020, 2, 2)
+  today = date.today()
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
