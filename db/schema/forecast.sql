@@ -13,7 +13,9 @@ CREATE TABLE forecast (
     maxfeel integer NOT NULL,
     cloudcover integer NOT NULL,
     rainpct integer NOT NULL,
-    date_forecasted date NOT NULL
+    date_forecasted date NOT NULL,
+    is_warm boolean,
+    is_sunny boolean
 );
 
 -- Indices -------------------------------------------------------

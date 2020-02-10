@@ -41,7 +41,7 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
 
   const [fc_date_start, fc_date_end] = [today, addDays(dateForecasted, NDAYS)]
   const fcResults = await pool.query(`
-    SELECT city_id, fc_date, mintemp, maxtemp, minfeel, maxfeel, cloudcover, rainpct, date_forecasted
+    SELECT city_id, fc_date, mintemp, maxtemp, minfeel, maxfeel, cloudcover, rainpct, date_forecasted, is_sunny, is_warm
     FROM forecast
     WHERE date_forecasted = $1 AND fc_date >= $2 AND fc_date < $3 AND city_id = ANY($4::int[])
     ORDER BY city_id, fc_date;
@@ -55,20 +55,17 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
     maxConsecutiveGoodDays: pfcr.max_consecutive_good_days,
     maxConsecutiveWarmDays: pfcr.max_consecutive_warm_days,
     driveTimeMinutes: pfcr.gmap_drive_time_minutes,
-    results: fcResultsByCity[pfcr.city_id].map(r => {
-      const isoFCDate = isoDate(r.fc_date)
-      return {
-        date: hackNormalizePgDate(r.fc_date),
-        mintemp: r.mintemp,
-        maxtemp: r.maxtemp,
-        maxfeel: r.maxfeel,
-        minfeel: r.minfeel,
-        cloudcover: r.cloudcover,
-        rainpct: r.rainpct,
-        isGoodDay: pfcr.good_days_csl.indexOf(isoFCDate) !== -1,
-        isWarmDay: pfcr.warm_days_csl.indexOf(isoFCDate) !== -1,
-      }
-    })
+    results: fcResultsByCity[pfcr.city_id].map(r => ({
+      date: hackNormalizePgDate(r.fc_date),
+      mintemp: r.mintemp,
+      maxtemp: r.maxtemp,
+      maxfeel: r.maxfeel,
+      minfeel: r.minfeel,
+      cloudcover: r.cloudcover,
+      rainpct: r.rainpct,
+      isGoodDay: r.is_sunny,
+      isWarmDay: r.is_warm,
+    }))
   }))
 
   return pfcs

@@ -9,60 +9,59 @@ conn_str = os.environ['POSTGRES_CONNECTION_STR']
 conn = psycopg2.connect(conn_str)
 
 
-CITY_ID = 0
-FC_DATE = 1
-MINTEMP = 2
-MAXTEMP = 3
-MINFEEL = 4
-MAXFEEL = 5
-CLOUDCOVER = 6
-RAINPCT = 7
-DATE_FORECASTED = 8
+FC_COLS = [
+  'city_id',
+  'fc_date',
+  'mintemp',
+  'maxtemp',
+  'minfeel',
+  'maxfeel',
+  'cloudcover',
+  'rainpct',
+  'date_forecasted',
+  'is_warm',
+  'is_sunny',
+]
+IDXS = dict((c, i) for i, c in enumerate(FC_COLS))
 
 
 # IMPORTANT: definition of sunny should match the image we display on the frontend (should probably move that logic here)
-def is_sunny_day(fc):
-  return fc[RAINPCT] < 20.0 and fc[CLOUDCOVER] <= 75.0
+def is_sunny_day(rainpct, cloudcover):
+  return rainpct < 20.0 and cloudcover <= 75.0
 
 
-def is_warm_day(fc):
-  return fc[RAINPCT] < 20.0 and fc[CLOUDCOVER] < 100.0 and fc[MAXTEMP] >= 67.0 and fc[MAXFEEL] <= 82.0
+def is_warm_day(rainpct, cloudcover, maxtemp, maxfeel):
+  return rainpct < 20.0 and cloudcover < 100.0 and maxtemp >= 67.0 and maxfeel <= 82.0
 
 
-def max_consecutive(lst, cmp, val):
+def max_consecutive(lst, cmp):
   curr_max = 0
   curr = 0
-  values = []
   for it in lst:
     if cmp(it):
-      values.append(val(it))
       curr += 1
       curr_max = max(curr_max, curr)
     else:
       curr = 0
-  return curr_max, values
+  return curr_max
 
 
-def max_consecutive_good_days(fcs):
-  return max_consecutive(fcs,
-    cmp=lambda fc: is_sunny_day(fc) or is_warm_day(fc),
-    val=lambda fc: fc[FC_DATE])
+def max_consecutive_sunny_days(fcs):
+  return max_consecutive(fcs, cmp=lambda fc: fc[IDXS['is_sunny']])
 
 
 def max_consecutive_warm_days(fcs):
-  return max_consecutive(fcs,
-    cmp=is_warm_day,
-    val=lambda fc: fc[FC_DATE])
+  return max_consecutive(fcs, cmp=lambda fc: fc[IDXS['is_warm']])
 
 
 def evaluate_fcs(fcs):
   # limit to 6 days (accurracy)
   fcs = fcs[:6]
-  max_consecutive, good_days = max_consecutive_good_days(fcs)
-  max_consecutive_warm, warm_days = max_consecutive_warm_days(fcs)
+  max_consecutive = max_consecutive_sunny_days(fcs)
+  max_consecutive_warm = max_consecutive_warm_days(fcs)
   is_recommended = max_consecutive > 1
   is_recommended_warm = max_consecutive_warm > 1
-  return len(fcs), max_consecutive, good_days, is_recommended, max_consecutive_warm, warm_days, is_recommended_warm
+  return len(fcs), max_consecutive, is_recommended, max_consecutive_warm, is_recommended_warm
 
 
 def process_forecast(city_id, city_name, today_iso):
@@ -70,24 +69,21 @@ def process_forecast(city_id, city_name, today_iso):
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
-        SELECT city_id, fc_date, mintemp, maxtemp, minfeel, maxfeel, cloudcover, rainpct, date_forecasted
+        SELECT {}
         FROM forecast
         WHERE city_id = %s AND date_forecasted = %s
-        ''', (city_id, today_iso))
+        '''.format(', '.join(FC_COLS)), (city_id, today_iso))
       fcs = cur.fetchall()
-      ndays, max_consecutive, good_days, is_recommended, max_consecutive_warm, warm_days, is_recommended_warm = evaluate_fcs(fcs)
-      good_days_csl = ','.join(sorted(d.isoformat() for d in good_days))
-      warm_days_csl = ','.join(sorted(d.isoformat() for d in warm_days))
+      ndays, max_consecutive, is_recommended, max_consecutive_warm, is_recommended_warm = evaluate_fcs(fcs)
       cur.execute('''
-        INSERT INTO processed_forecast(city_id, date_forecasted, ndays, max_consecutive_good_days, good_days_csl, is_recommended, max_consecutive_warm_days, warm_days_csl, is_recommended_warm)
-        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO processed_forecast(city_id, date_forecasted, ndays, max_consecutive_good_days, is_recommended, max_consecutive_warm_days, is_recommended_warm)
+        VALUES(%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (city_id, date_forecasted) DO NOTHING;
-        ''', (city_id, today_iso, ndays, max_consecutive, good_days_csl, is_recommended, max_consecutive_warm, warm_days_csl, is_recommended_warm))
+        ''', (city_id, today_iso, ndays, max_consecutive, is_recommended, max_consecutive_warm, is_recommended_warm))
 
 
-def process_forecasts():
+def process_weekly_forecasts():
   today_iso = date.today().isoformat()
-
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
@@ -103,8 +99,26 @@ def process_forecasts():
     process_forecast(city_id, city_name, today_iso)
 
 
+def process_warm_sunny():
+  with conn:
+    with conn.cursor() as cur:
+      cur.execute('''
+        SELECT id, maxtemp, maxfeel, cloudcover, rainpct
+        FROM forecast
+        WHERE is_warm IS NULL OR is_sunny IS NULL;''')
+      for fid, maxtemp, maxfeel, cloudcover, rainpct in cur.fetchall():
+        is_sunny = is_sunny_day(rainpct, cloudcover)
+        is_warm = is_warm_day(rainpct, cloudcover, maxtemp, maxfeel)
+        cur.execute('''
+          UPDATE forecast
+          SET is_warm = %s, is_sunny = %s
+          WHERE id = %s;
+          ''', (is_warm, is_sunny or is_warm, fid))
+
+
 if __name__ == '__main__':
   try:
-    process_forecasts()
+    process_warm_sunny()
+    process_weekly_forecasts()
   finally:
     conn.close()
