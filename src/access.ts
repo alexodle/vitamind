@@ -98,8 +98,8 @@ export async function getRecommendationsForCity(targetCityID: number, weathType:
   const processedFcResults = await pool.query(`
     SELECT
       city.id AS city_id, city.name AS city_name, date_forecasted, ndays,
-      max_consecutive_good_days, is_recommended, good_days_csl,
-      max_consecutive_warm_days, is_recommended_warm, warm_days_csl,
+      max_consecutive_good_days, is_recommended,
+      max_consecutive_warm_days, is_recommended_warm,
       ctt.gmap_drive_time_minutes AS gmap_drive_time_minutes
     FROM processed_forecast pf
     JOIN city ON city.id = pf.city_id
