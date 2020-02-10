@@ -2,9 +2,6 @@ export interface User {
   id: number
   email: string
   email_confirmed: bool
-
-  // secret
-  email_conf_uuid?: string
 }
 
 export interface UserAlert {
@@ -15,6 +12,12 @@ export interface UserAlert {
 
   // secret
   unique_id?: string
+}
+
+export interface UserConf {
+  conf_id: string
+  user_id?: number
+  conf_timestampz?: Date
 }
 
 export interface ProcessedDailyForecast extends DailyForecast {

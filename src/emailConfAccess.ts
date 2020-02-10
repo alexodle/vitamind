@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
-import { pool } from './access';
+import { pool, getUser } from './access';
 import { InvalidRequestError, NotFoundError } from './errors';
 import { requireEnv } from './nodeUtils';
-import { User } from './types';
+import { User, UserConf } from './types';
 
 // Users have GRACE_TIME_MINS to confirm email
 const GRACE_TIME_MINS = 10
@@ -21,30 +21,33 @@ const mailer = nodemailer.createTransport({
   }
 })
 
-const buildHTMLEmail = (user: User) => `<html>
+const buildHTMLEmail = (user: User, userConf: UserConf) => `<html>
 <body>
 <p>${user.email},<br /><br />
 You signed up to get alerts from VitaminD.
 <br /><br />
-<a href="${process.env.BASE_URL}/user/confirm/${user.email_conf_uuid}">Click here to confirm your email and start receiving those alerts.</a></p>
+<a href="${process.env.BASE_URL}/user/confirm/${userConf.conf_id}">Click here to confirm your email and start receiving those alerts.</a></p>
 <br/>
 - VitaminD
 </body>
 </html>`
 
-const buildTextEmail = (user: User) => `${user.email},
+const buildTextEmail = (user: User, userConf: UserConf) => `${user.email},
 You signed up to get alerts from VitaminD.
-Navigate to the following URL to confirm your email: ${process.env.BASE_URL}/user/confirm/${user.email_conf_uuid}
+Navigate to the following URL to confirm your email: ${process.env.BASE_URL}/user/confirm/${userConf.conf_id}
 
 - VitaminD
 `
 
 async function getUserIDByConfirmationUUID(confirmationUUID: string): Promise<number> {
-  const result = await pool.query(`SELECT id FROM users WHERE email_conf_uuid = $1;`, [confirmationUUID])
+  const result = await pool.query(`
+    SELECT user_id
+    FROM user_conf
+    WHERE conf_id = $1;`, [confirmationUUID])
   if (result.rows.length < 1) {
     throw new NotFoundError()
   }
-  return result.rows[0].id
+  return result.rows[0].user_id
 }
 
 export async function resendConfirmationEmail(oldConfirmationUUID: string) {
@@ -53,40 +56,52 @@ export async function resendConfirmationEmail(oldConfirmationUUID: string) {
 }
 
 export async function sendConfirmationEmail(userID: number) {
-  const result = await pool.query(`
-    UPDATE users
-    SET
-      email_conf_uuid = uuid_generate_v4(),
-      email_conf_uuid_last_updated = NOW()
-    WHERE id = $1
-    RETURNING id, email, email_conf_uuid;
+  const user: User = await getUser(userID)
+  const userConfResults = await pool.query(`
+    INSERT INTO user_conf(user_id)
+    VALUES($1)
+    RETURNING conf_id;
   `, [userID])
-  if (result.rows.length < 1) {
+  if (userConfResults.rows.length < 1) {
     throw new NotFoundError()
   }
 
-  const user: User = result.rows[0]
+  const userConf: UserConf = userConfResults.rows[0]
   await mailer.sendMail({
     from: `"${EMAIL_DISPLAY_NAME}" <${EMAIL_FROM}>`,
     to: user.email,
     subject: EMAIL_SUBJECT,
-    text: buildTextEmail(user),
-    html: buildHTMLEmail(user),
+    text: buildTextEmail(user, userConf),
+    html: buildHTMLEmail(user, userConf),
   })
 }
 
 export async function confirmUserEmail(confirmationUUID: string) {
+  const userConfResults = await pool.query(`
+    SELECT uc.conf_id conf_id, u.id user_id, u.email_confirmed email_confirmed
+    FROM user_conf uc
+    JOIN users u ON u.id = uc.user_id
+    WHERE conf_id = $1;`, [confirmationUUID])
+  if (userConfResults.rows.length < 1) {
+    throw new NotFoundError()
+  }
+
+  const userConfResult: { conf_id: string, user_id: number, email_confirmed: boolean } = userConfResults.rows[0]
+  if (userConfResult.email_confirmed) {
+    // Already done
+    return
+  }
+
+  // Update based on grace period
   const result = await pool.query(`
     UPDATE users
     SET email_confirmed = TRUE
+    FROM user_conf
     WHERE
-      email_conf_uuid = $1 AND
-      email_conf_uuid_last_updated >= NOW() - interval '${GRACE_TIME_MINS}' minute;
+      conf_id = $1 AND
+      conf_timestampz >= NOW() - interval '${GRACE_TIME_MINS}' minute;
   `, [confirmationUUID])
   if (result.rowCount < 1) {
-    // This will throw a NotFoundError if the confirmationUUID does not exist
-    await getUserIDByConfirmationUUID(confirmationUUID)
-
     // Else, InvalidRequestError indicates the user exists, but the request is past the grace period
     throw new InvalidRequestError()
   }
