@@ -2,16 +2,15 @@ export interface User {
   id: number
   email: string
   email_confirmed: bool
+  user_uuid?: string
 }
 
 export interface UserAlert {
+  id: number
   user_id: number
   city_id: number
   max_drive_minutes: number
   weath_type: WeathType
-
-  // secret
-  unique_id?: string
 }
 
 export interface UserConf {

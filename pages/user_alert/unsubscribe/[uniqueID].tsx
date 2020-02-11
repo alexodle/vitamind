@@ -18,7 +18,8 @@ const Unsubscribe: NextPage<UnsubscribeProps> = ({ status }) => (
 )
 
 Unsubscribe.getInitialProps = async (ctx: NextPageContext): Promise<UnsubscribeProps> => {
-  const uniqueID = ctx.query.uniqueID as string
+  const userAlertID = ctx.query.uniqueID as string
+  const 
   try {
     const res = await fetch(process.env.BASE_URL + `/api/user_alert/${uniqueID}`, { method: 'DELETE' })
     return { status: res.ok ? 'success' : 'error' }

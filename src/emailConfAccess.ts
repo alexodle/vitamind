@@ -98,6 +98,7 @@ export async function confirmUserEmail(confirmationUUID: string) {
     SET email_confirmed = TRUE
     FROM user_conf
     WHERE
+      user_conf.user_id = users.id AND
       conf_id = $1 AND
       conf_timestampz >= NOW() - interval '${GRACE_TIME_MINS}' minute;
   `, [confirmationUUID])

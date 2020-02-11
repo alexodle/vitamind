@@ -129,7 +129,7 @@ export async function createOrUpdateUserAlert(email: string, cityID: number, dri
   const userAlert: UserAlert = (await pool.query(`
     SELECT user_id, city_id, max_drive_minutes, weath_type
     FROM user_alert
-    WHERE  user_id = $1;
+    WHERE user_id = $1;
     `, [user.id])).rows[0]
 
   if (!user.email_confirmed) {
@@ -148,6 +148,16 @@ export async function createOrUpdateUserAlert(email: string, cityID: number, dri
   return [user, userAlert]
 }
 
-export async function deactivateUserAlertByUniqueID(uniqueID: string) {
-  await pool.query(`UPDATE user_alert SET active = FALSE WHERE unique_id = $1`, [uniqueID])
+export async function deactivateUserAlertByUniqueID(userUUID: string, userAlertID: number) {
+  const result = await pool.query(`
+    UPDATE user_alert
+    SET active = FALSE
+    FROM users
+    WHERE
+      user_alert.id = $1 AND
+      user_alert.user_id = users.id AND
+      users.user_uuid = $2;`, [userAlertID, userUUID])
+  if (result.rowCount < 1) {
+    throw new NotFoundError()
+  }
 }
