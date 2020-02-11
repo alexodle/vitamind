@@ -2,10 +2,10 @@ import fetch from 'isomorphic-unfetch'
 import { NextPage } from 'next'
 import Link from 'next/link'
 import { parseCookies, setCookie } from 'nookies'
-import { FunctionComponent, SyntheticEvent, useState, Fragment } from 'react'
+import { Fragment, FunctionComponent, SyntheticEvent, useState } from 'react'
 import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
-import { MAX_DRIVE_MINUTES } from '../src/constants'
+import { DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES } from '../src/constants'
 import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
 import { isValidEmail } from '../src/util'
 
@@ -174,7 +174,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
     ev.preventDefault()
 
     setIsSubmitting(true)
-    setCookie(null, 'email', alertEmail, {})
+    setCookie(null, 'email', alertEmail, DEFAULT_COOKIE_OPTIONS)
 
     const data = {
       cityID: props.city.id,
