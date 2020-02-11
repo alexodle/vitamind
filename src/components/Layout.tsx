@@ -5,7 +5,7 @@ import { FunctionComponent } from "react";
 export const Layout: FunctionComponent<{}> = ({ children }) => (
   <div className='container'>
     <Head key='layout-head'>
-      <title>VitaminD - get some</title>
+      <title>VitaminD</title>
       <meta charSet="utf-8" />
       <meta
         name="viewport"
@@ -16,7 +16,7 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         rel="stylesheet"
       />
     </Head>
-    <h1><Link href="/"><a className='unstyled'>VitaminD <em>get some</em></a></Link></h1>
+    <h1 className='logo'><Link href="/"><a className='unstyled'>VitaminD</a></Link></h1>
     {children}
     <footer>
       <p><small>Weather forecasts provided by <a href="https://darksky.net/" target="_blank">DarkSky</a>. Driving distances provided by <a href="https://www.google.com/maps" target="_blank">Google Maps</a>.</small></p>
@@ -26,6 +26,9 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
       .container {
         margin: auto;
         width: 900px;
+      }
+      .logo {
+        font-size: 40px;
       }
       a.unstyled {
         text-decoration: none;
