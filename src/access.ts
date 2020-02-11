@@ -122,8 +122,7 @@ export async function createOrUpdateUserAlert(email: string, cityID: number, dri
     ON CONFLICT(user_id, city_id) DO UPDATE SET
       active = TRUE,
       max_drive_minutes = $3,
-      weath_type = $4,
-      unique_id = uuid_generate_v4();
+      weath_type = $4;
     `, [user.id, cityID, driveHours * 60, weathType])
 
   const userAlert: UserAlert = (await pool.query(`

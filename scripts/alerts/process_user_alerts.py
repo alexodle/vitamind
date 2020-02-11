@@ -17,6 +17,25 @@ email_from = os.environ['EMAIL_FROM']
 
 server = smtplib.SMTP_SSL(email_host, 465)
 
+
+COLS = [
+  'user_alert.id user_alert_id',
+  'email',
+  'users.user_uuid user_uuid',
+  'user_alert.city_id city_id',
+  'city.name city_name',
+  'user_alert.max_drive_minutes max_drive_minutes',
+  'user_alert.weath_type weath_type',
+  'cities_gained_csl',
+  'cities_lost_csl',
+  'did_change',
+]
+IDXS = dict((c.split(' ')[-1], i) for i, c in enumerate(COLS))
+
+def get(row, col):
+  return row[IDXS[col]]
+
+
 EMAIL_DISPLAY_NAME = 'VitaminD'
 
 GAINED_CITIES_EMAIL_SUBJ = 'New VitaminD opportunities detected!'
@@ -70,10 +89,8 @@ Navigate here to unsubscribe: %(unsub_href)s
 '''
 
 
-def send_alert(today, alert_row):
-  _, email, alert_unique_id, city_id, city_name, max_drive_minutes, weath_type, cities_gained_csl, _, _ = alert_row
-
-  if cities_gained_csl:
+def send_alert(today, alert):
+  if get(alert, 'cities_gained_csl'):
     subj = GAINED_CITIES_EMAIL_SUBJ
     html_tmpl = GAINED_CITIES_EMAIL_TMPL
     plain_tmpl = GAINED_CITIES_EMAIL_TMPL_PLAIN
@@ -84,15 +101,16 @@ def send_alert(today, alert_row):
 
   tmpl_params = {
     'base_url': os.environ['BASE_URL'],
-    'email': email,
-    'unique_id': alert_unique_id,
-    'max_drive_hours': max_drive_minutes / 60,
-    'weath_type': weath_type,
-    'city_name': city_name,
-    'city_id': city_id,
+    'user_alert_id': get(alert, 'user_alert_id'),
+    'email': get(alert, 'email'),
+    'user_uuid': get(alert, 'user_uuid'),
+    'max_drive_hours': get(alert, 'max_drive_minutes') / 60,
+    'weath_type': get(alert, 'weath_type'),
+    'city_name': get(alert, 'city_name'),
+    'city_id': get(alert, 'city_id'),
     }
   tmpl_params['href'] = '%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&weath_type=%(weath_type)s&emailAlert=true' % tmpl_params
-  tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(unique_id)s' % tmpl_params
+  tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(user_alert_id)s?userUUID=%(user_uuid)s' % tmpl_params
 
   body = html_tmpl % tmpl_params
   body_plain = plain_tmpl % tmpl_params
@@ -100,22 +118,21 @@ def send_alert(today, alert_row):
   message = MIMEMultipart("alternative")
   message["Subject"] = subj
   message["From"] = '%s <%s>' % (EMAIL_DISPLAY_NAME, email_from)
-  message["To"] = email
+  message["To"] = get(alert, 'email')
   message.attach(MIMEText(body_plain, "plain"))
   message.attach(MIMEText(body, "html"))
 
-  server.sendmail(email_from, email, message.as_string())
+  server.sendmail(email_from, get(alert, 'email'), message.as_string())
 
 
-def process_alert(today, alert_row):
-  user_alert_id, email, _, _, _, _, _, _, _, did_change = alert_row
+def process_alert(today, alert):
   with conn:
     with conn.cursor() as cur:
-      if did_change:
-        print 'sending alert to: %s' % email
-        send_alert(today, alert_row)
+      if get(alert, 'did_change'):
+        print 'sending alert to: %s' % get(alert, 'email')
+        send_alert(today, alert)
       else:
-        print 'not sending alert email to: %s' % email
+        print 'not sending alert email to: %s' % get(alert, 'email')
       cur.execute('''
         INSERT INTO user_alert_instance(user_alert_id, date, attempts, completed, sent_alert)
         VALUES(%s, %s, 1, TRUE, %s)
@@ -124,7 +141,7 @@ def process_alert(today, alert_row):
           attempts = user_alert_instance.attempts + 1,
           completed = TRUE,
           sent_alert = %s
-      ''', (user_alert_id, today, did_change, did_change))
+      ''', (get(alert, 'user_alert_id'), today, get(alert, 'did_change'), get(alert, 'did_change')))
 
 
 def process_user_alerts():
@@ -132,16 +149,7 @@ def process_user_alerts():
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
-        SELECT
-          user_alert.id user_alert_id,
-          email, user_alert.unique_id unique_id,
-          user_alert.city_id city_id,
-          city.name city_name,
-          user_alert.max_drive_minutes max_drive_minutes,
-          user_alert.weath_type weath_type,
-          cities_gained_csl,
-          cities_lost_csl,
-          did_change
+        SELECT {}
         FROM user_alert
         JOIN users ON user_id = users.id
         JOIN city ON user_alert.city_id = city.id
@@ -159,7 +167,7 @@ def process_user_alerts():
             completed = TRUE AND
             attempts < 5
         );
-      ''', (today, today))
+      '''.format(', '.join(COLS)), (today, today))
       for row in cur.fetchall():
         process_alert(today, row)
 

@@ -18,10 +18,13 @@ const Unsubscribe: NextPage<UnsubscribeProps> = ({ status }) => (
 )
 
 Unsubscribe.getInitialProps = async (ctx: NextPageContext): Promise<UnsubscribeProps> => {
-  const userAlertID = ctx.query.uniqueID as string
-  const 
+  const { id, userUUID } = ctx.query
+  if (!userUUID || !id) {
+    throw new Error('Missing required query params')
+  }
+
   try {
-    const res = await fetch(process.env.BASE_URL + `/api/user_alert/${uniqueID}`, { method: 'DELETE' })
+    const res = await fetch(process.env.BASE_URL + `/api/user_alert/${id}?userUUID=${userUUID}`, { method: 'DELETE' })
     return { status: res.ok ? 'success' : 'error' }
   } catch (e) {
     console.error(e)

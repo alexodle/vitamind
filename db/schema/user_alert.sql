@@ -9,12 +9,9 @@ CREATE TABLE user_alert (
     max_drive_minutes integer NOT NULL,
     user_id integer NOT NULL REFERENCES users(id),
     active boolean NOT NULL DEFAULT true,
-    unique_id uuid NOT NULL DEFAULT uuid_generate_v4(),
     weath_type text NOT NULL
 );
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX user_alert_pkey ON user_alert(id int4_ops);
 CREATE UNIQUE INDEX user_alert_city_id_user_id_idx ON user_alert(city_id int4_ops,user_id int4_ops);
-CREATE UNIQUE INDEX user_alert_unique_id_idx ON user_alert(unique_id uuid_ops);

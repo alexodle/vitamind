@@ -5,11 +5,11 @@
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    email text,
-    email_confirmed boolean NOT NULL DEFAULT false
+    email text NOT NULL,
+    email_confirmed boolean NOT NULL DEFAULT false,
+    user_uuid uuid NOT NULL DEFAULT uuid_generate_v4()
 );
 
 -- Indices -------------------------------------------------------
 
-CREATE UNIQUE INDEX user_pkey ON users(id int4_ops);
 CREATE UNIQUE INDEX user_email_idx ON users(email text_ops);

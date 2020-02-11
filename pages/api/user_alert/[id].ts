@@ -3,19 +3,16 @@ import { deactivateUserAlertByUniqueID } from "../../../src/access";
 import { InvalidRequestError } from "../../../src/errors";
 import { createRequestHandler } from "../../../src/requestHandler";
 
-function isUniqueID(maybeUuid: string) {
-  return maybeUuid.indexOf('-') !== -1
-}
-
-async function del(req: NextApiRequest, res: NextApiResponse) {
-  const uniqueID = req.query.id as string
-  if (!isUniqueID(uniqueID)) {
+async function removeAlert(req: NextApiRequest, res: NextApiResponse) {
+  const id = parseInt(req.query.id as string, 10)
+  const userUUID = req.query.userUUID as string
+  if (isNaN(id) || !userUUID) {
     throw new InvalidRequestError()
   }
 
-  await deactivateUserAlertByUniqueID(uniqueID)
+  await deactivateUserAlertByUniqueID(userUUID, id)
 
   res.status(204).send({})
 }
 
-export default createRequestHandler({ delete: del })
+export default createRequestHandler({ delete: removeAlert })
