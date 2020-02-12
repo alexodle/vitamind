@@ -11,6 +11,8 @@ export interface UserAlert {
   city_id: number
   max_drive_minutes: number
   weath_type: WeathType
+  active?: boolean
+  city_name?: string
 }
 
 export interface UserConf {
@@ -66,4 +68,9 @@ export interface WeathResult {
 export interface PostUserAlertResult {
   user: User
   userAlert: UserAlert
+}
+
+export interface GetUserAlertsResult {
+  user: User
+  userAlerts: UserAlert[]
 }

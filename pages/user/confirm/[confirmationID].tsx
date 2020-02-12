@@ -46,7 +46,7 @@ const EmailConfirmation: NextPage<EmailConfirmationProps> = ({ status, confirmat
       body = 'Something went wrong... Try the link in your email again, or try signing up for another alert.'
     } else {
       body = (
-        <span>This link is too old. <a href="" onClick={resendEmail}>Resend the confirmation email</a></span>
+        <span>This link is too old. <a href="#" onClick={resendEmail}>Resend the confirmation email</a></span>
       )
     }
     return (

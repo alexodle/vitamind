@@ -256,7 +256,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
         <br /><br />
         <div>
           {isCreatingAlert ? renderAlertForm() : (
-            <a href="" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlert(true); }}>Create alert for this</a>
+            <a href="#" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlert(true); }}>Create alert for this</a>
           )}
         </div>
       </section>

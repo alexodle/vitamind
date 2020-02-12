@@ -1,6 +1,6 @@
-import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
 import Link from 'next/link'
+import { toggleUserAlert } from '../../../src/clientAPI'
 import { Alert } from '../../../src/components/Alert'
 import { Layout } from '../../../src/components/Layout'
 
@@ -18,16 +18,22 @@ const Unsubscribe: NextPage<UnsubscribeProps> = ({ status }) => (
 )
 
 Unsubscribe.getInitialProps = async (ctx: NextPageContext): Promise<UnsubscribeProps> => {
-  const { id, userUUID } = ctx.query
-  if (!userUUID || !id) {
-    throw new Error('Missing required query params')
+  const userUUID = ctx.query.userUUID as string
+  const alertID = parseInt(ctx.query.id as string, 10)
+  if (isNaN(alertID) || !userUUID) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('missing query params')
+    }
+    return { status: 'error' }
   }
 
   try {
-    const res = await fetch(process.env.BASE_URL + `/api/user_alert/${id}?userUUID=${userUUID}`, { method: 'DELETE' })
-    return { status: res.ok ? 'success' : 'error' }
+    await toggleUserAlert(alertID, userUUID, false)
+    return { status: 'success' }
   } catch (e) {
-    console.error(e)
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(e)
+    }
     return { status: 'error' }
   }
 }

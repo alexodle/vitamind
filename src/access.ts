@@ -1,11 +1,12 @@
 import { groupBy } from 'lodash'
 import moment from 'moment'
 import { Pool } from 'pg'
-import { MAX_DRIVE_MINUTES } from '../src/constants'
+import { MAX_DRIVE_MINUTES, VALID_DRIVE_HOURS } from '../src/constants'
 import { sendConfirmationEmail } from './emailConfAccess'
-import { NotFoundError } from './errors'
+import { InvalidRequestError, NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
 import { City, ProcessedForecast, User, UserAlert, WeathType } from './types'
+import { isValidWeathType } from './util'
 
 const NDAYS = 6
 
@@ -79,6 +80,14 @@ export async function getUser(id: number): Promise<User> {
   return result.rows[0]
 }
 
+export async function getUserByUUID(uuid: string): Promise<User> {
+  const result = await pool.query(`SELECT id, email, email_confirmed FROM users WHERE user_uuid = $1;`, [uuid])
+  if (result.rows.length < 1) {
+    throw new NotFoundError()
+  }
+  return result.rows[0]
+}
+
 export async function getCity(id: number): Promise<City> {
   const result = await pool.query(`SELECT id, name, selectable FROM city WHERE id = $1`, [id])
   if (result.rows.length < 1) {
@@ -113,6 +122,10 @@ export async function getRecommendationsForCity(targetCityID: number, weathType:
 }
 
 export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number, weathType: WeathType): Promise<[User, UserAlert]> {
+  if (!email || isNaN(cityID) || VALID_DRIVE_HOURS.indexOf(driveHours) === -1 || !isValidWeathType(weathType)) {
+    throw new InvalidRequestError(`invalid param value`)
+  }
+
   await pool.query(`INSERT INTO users(email) VALUES($1) ON CONFLICT (email) DO NOTHING;`, [email])
   const user: User = (await pool.query(`SELECT id, email, email_confirmed FROM users WHERE email = $1;`, [email])).rows[0]
 
@@ -147,16 +160,37 @@ export async function createOrUpdateUserAlert(email: string, cityID: number, dri
   return [user, userAlert]
 }
 
-export async function deactivateUserAlertByUniqueID(userUUID: string, userAlertID: number) {
+export async function toggleUserAlert(userAlertID: number, userUUID: string, active: boolean) {
   const result = await pool.query(`
     UPDATE user_alert
-    SET active = FALSE
+    SET active = $3
     FROM users
     WHERE
-      user_alert.id = $1 AND
       user_alert.user_id = users.id AND
-      users.user_uuid = $2;`, [userAlertID, userUUID])
+      user_alert.id = $1 AND
+      users.user_uuid = $2;`, [userAlertID, userUUID, active])
   if (result.rowCount < 1) {
     throw new NotFoundError()
   }
+}
+
+export async function getAlertsForUser(userUUID: string): Promise<UserAlert[]> {
+  const result = await pool.query(`
+    SELECT
+      a.id id,
+      a.user_id user_id,
+      a.city_id city_id,
+      a.max_drive_minutes max_drive_minutes,
+      a.weath_type weath_type,
+      a.active active,
+      c.name city_name
+    FROM user_alert a
+    JOIN users u ON u.id = a.user_id
+    JOIN city c ON c.id = a.city_id
+    WHERE u.user_uuid = $1;
+    `, [userUUID])
+  if (result.rows.length < 1) {
+    throw new NotFoundError()
+  }
+  return result.rows
 }
