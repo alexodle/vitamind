@@ -1,12 +1,13 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
-import { Fragment, FunctionComponent, useState } from 'react'
+import { Fragment, FunctionComponent, useState, SyntheticEvent } from 'react'
 import { HARDCODED_DARK_CITIES } from '../../gen/ts/db_constants'
 import { toggleUserAlert, updateUserAlert } from '../../src/clientAPI'
 import { Alert } from '../../src/components/Alert'
 import { Layout } from '../../src/components/Layout'
 import { VALID_DRIVE_HOURS } from '../../src/constants'
 import { GetUserAlertsResult, User, UserAlert, WeathType } from '../../src/types'
+import css from 'styled-jsx/css'
 
 export interface ManageAlertsProps {
   user: User
@@ -20,28 +21,89 @@ interface AlertRowProps {
   onFailedUpdate: () => void
 }
 
+interface EditAlerRowProps {
+  userAlert: UserAlert
+  isSubmitting: boolean
+  onSave: (update: Partial<UserAlert>) => void
+  onCancel: () => void
+}
+
 interface ButtonProps {
+  disabled: boolean
   onClick: () => void
 }
 
 const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'
 
-const Button: FunctionComponent<ButtonProps> = ({ children, onClick }) => (
-  <a href="#" onClick={ev => { ev.preventDefault(); onClick(); }}>{children}</a>
+const Button: FunctionComponent<ButtonProps> = ({ children, onClick, disabled }) => (
+  <a href="#" onClick={ev => { ev.preventDefault(); if (!disabled) { onClick(); } }}>{children}</a>
 )
+
+const rowStyles = css`
+  .alert-display, .buttons {
+    display: inline-block;
+  }
+  .alert-display {
+    width: 450px;
+  }
+  .buttons {
+    margin-left: 20px;
+  }
+  .alert-display.inactive {
+    text-decoration-line: line-through;
+  }
+`
+
+const EditAlertRow: FunctionComponent<EditAlerRowProps> = ({ userAlert, onSave, onCancel, isSubmitting }) => {
+  const [cityID, setCityID] = useState(userAlert.city_id.toString())
+  const [driveHours, setDriveHours] = useState((userAlert.max_drive_minutes / 60).toString())
+  const [weathType, setWeathType] = useState(userAlert.weath_type)
+
+  const onSaveClick = () => {
+    onSave({
+      city_id: parseInt(cityID, 10),
+      max_drive_minutes: parseInt(driveHours, 10) * 60,
+      weath_type: weathType,
+    })
+  }
+
+  return (
+    <Fragment>
+      <span className='alert-display'>
+        <select id='weathType' name='weathType' value={weathType} onChange={e => setWeathType(e.target.value as WeathType)} disabled={isSubmitting}>
+          <option value={'sunny'}>Sunny weather</option>
+          <option value={'warm'}>Warm weather</option>
+        </select>
+        {' '}within a{' '}
+        <select id='driveHours' name='driveHours' value={driveHours} onChange={ev => setDriveHours(ev.target.value)} disabled={isSubmitting}>
+          {VALID_DRIVE_HOURS.map(h =>
+            <option key={h} value={h.toString()}>{h} hour</option>
+          )}
+        </select>
+        {' '}drive of{' '}
+        <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isSubmitting}>
+          {HARDCODED_DARK_CITIES.map(([name, cid]) =>
+            <option key={cid} value={cid.toString()}>{name}</option>
+          )}
+        </select>
+      </span>
+      <span className='buttons'>
+        <Button onClick={onCancel} disabled={isSubmitting}>Cancel</Button> | <Button onClick={onSaveClick} disabled={isSubmitting}>Update</Button>
+      </span>
+      <style jsx>{rowStyles}</style>
+    </Fragment>
+  )
+}
 
 const AlertRow: FunctionComponent<AlertRowProps> = ({ user, userAlert, onUpdate, onFailedUpdate }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [editingCityID, setEditingCityID] = useState(userAlert.city_id.toString())
-  const [editingDriveHours, setEditingDriveHours] = useState((userAlert.max_drive_minutes / 60).toString())
-  const [editingWeathType, setEditingWeathType] = useState(userAlert.weath_type)
 
   const toggleActive = async () => {
     setIsSubmitting(true)
     try {
-      await toggleUserAlert(userAlert.id, user.user_uuid as string, !userAlert.active)
-      onUpdate({ ...userAlert, active: !userAlert.active }, userAlert.active ? 'unsub' : 'sub')
+      await toggleUserAlert(userAlert.id, user.user_uuid!, !userAlert.active)
+      onUpdate({ active: !userAlert.active }, userAlert.active ? 'unsub' : 'sub')
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         console.error(e)
@@ -52,17 +114,12 @@ const AlertRow: FunctionComponent<AlertRowProps> = ({ user, userAlert, onUpdate,
     }
   }
 
-  const saveChanges = async () => {
+  const saveChanges = async (update: Partial<UserAlert>) => {
     setIsSubmitting(true)
     try {
-      const cityID = parseInt(editingCityID, 10)
-      const maxDriveMinutes = parseInt(editingDriveHours, 10) * 60
-      const weathType = editingWeathType
-
-      await updateUserAlert(userAlert.id, user.user_uuid as string, cityID, maxDriveMinutes, editingWeathType)
-
+      await updateUserAlert(userAlert.id, user.user_uuid!, update.city_id!, update.max_drive_minutes!, update.weath_type!)
+      onUpdate(update, 'props')
       setIsEditing(false)
-      onUpdate({ ...userAlert, city_id: cityID, max_drive_minutes: maxDriveMinutes, weath_type: weathType }, 'props')
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         console.error(e)
@@ -74,79 +131,41 @@ const AlertRow: FunctionComponent<AlertRowProps> = ({ user, userAlert, onUpdate,
   }
 
   const renderButtons = () => {
-    if (isSubmitting) {
-      return <span className='loading'>...</span>
-    } else if (isEditing) {
+    if (userAlert.active) {
       return (
         <Fragment>
-          <Button onClick={() => setIsEditing(false)}>Cancel</Button> | <Button onClick={saveChanges}>Update</Button>
-        </Fragment>
-      )
-    } else if (userAlert.active) {
-      return (
-        <Fragment>
-          <Button onClick={() => setIsEditing(true)}>Edit</Button> | <Button onClick={toggleActive}>Unsubscribe</Button>
+          <Button onClick={() => setIsEditing(true)} disabled={isSubmitting}>Edit</Button> | <Button onClick={toggleActive} disabled={isSubmitting}>Unsubscribe</Button>
         </Fragment>
       )
     }
-    return <Button onClick={toggleActive}>Activate</Button>
+    return <Button onClick={toggleActive} disabled={isSubmitting}>Activate</Button>
   }
 
-  const renderEditingRow = () => (
-    <Fragment>
-      <select id='weathType' name='weathType' value={editingWeathType} onChange={e => setEditingWeathType(e.target.value as WeathType)} disabled={isSubmitting}>
-        <option value={'sunny'}>Sunny weather</option>
-        <option value={'warm'}>Warm weather</option>
-      </select>
-      {' '}within a{' '}
-      <select id='driveHours' name='driveHours' value={editingDriveHours} onChange={ev => setEditingDriveHours(ev.target.value)} disabled={isSubmitting}>
-        {VALID_DRIVE_HOURS.map(h =>
-          <option key={h} value={h.toString()}>{h} hour</option>
-        )}
-      </select>
-      {' '}drive of{' '}
-      <select id='cityID' name='cityID' value={editingCityID} onChange={ev => setEditingCityID(ev.target.value)} disabled={isSubmitting}>
-        {HARDCODED_DARK_CITIES.map(([name, cid]) =>
-          <option key={cid} value={cid.toString()}>{name}</option>
-        )}
-      </select>
-    </Fragment>
+  const renderEditRow = () => (
+    <EditAlertRow userAlert={userAlert} onCancel={() => setIsEditing(false)} onSave={saveChanges} isSubmitting={isSubmitting} />
   )
 
   const renderRow = () => (
-    <span className={`alert-display ${userAlert.active ? 'active' : 'inactive'}`}>
-      <b>{friendlyWeathType(userAlert.weath_type)}</b> within a <b>{userAlert.max_drive_minutes / 60} hour</b> drive of <b>{userAlert.city_name}</b>
-    </span>
+    <Fragment>
+      <span className={`alert-display ${userAlert.active ? 'active' : 'inactive'}`}>
+        <b>{friendlyWeathType(userAlert.weath_type)}</b> within a <b>{userAlert.max_drive_minutes / 60} hour</b> drive of <b>{userAlert.city_name}</b>
+      </span>
+      <span className='buttons'>{renderButtons()}</span>
+      <style jsx>{rowStyles}</style>
+    </Fragment>
   )
 
   return (
     <Fragment>
-      <span className={`alert-display ${userAlert.active ? 'active' : 'inactive'}`}>
-        {isEditing ? renderEditingRow() : renderRow()}
-      </span>
-      <span className='buttons'>{renderButtons()}</span>
-      <style jsx>{`
-        .alert-display, .buttons {
-          display: inline-block;
-        }
-        .alert-display {
-          width: 450px;
-        }
-        .buttons {
-          margin-left: 20px;
-        }
-        .alert-display.inactive {
-          text-decoration-line: line-through;
-        }
-      `}</style>
+      {isEditing ? renderEditRow() : renderRow()}
     </Fragment>
   )
 }
 
 const SUCCESS_MESSAGES = {
-  'sub': 'Successfully activated alert.',
-  'unsub': 'Deactivated alert.',
-  'props': 'Successfully updated alert.',
+  'sub': 'Activated alert.',
+  'unsub': 'Unsubscribed.',
+  'props': 'Updated alert.',
 }
 
 const ERROR_MESSAGE = 'Something went wrong. Please try again.'
@@ -170,7 +189,7 @@ const ManageAlerts: NextPage<ManageAlertsProps> = ({ user, initialUserAlerts }) 
     <Layout>
       <h2>Manage alerts for {user.email}</h2>
       {status ? <Alert status={status.status}>{status.message}</Alert> : null}
-      <ul className='unstyled'>
+      <ul className='alerts-list'>
         {userAlerts.map((a, i) => (
           <li key={a.id}>
             <AlertRow
@@ -183,9 +202,11 @@ const ManageAlerts: NextPage<ManageAlertsProps> = ({ user, initialUserAlerts }) 
         ))}
       </ul>
       <style jsx>{`
-        ul.unstyled {
+        ul.alerts-list {
           list-style-type: none;
           padding-inline-start: 0;
+          margin-top: 30px;
+          margin-bottom: 30px;
         }
       `}</style>
     </Layout>

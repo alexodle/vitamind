@@ -49,7 +49,7 @@ GAINED_CITIES_EMAIL_TMPL = '''\
 - VitaminD
 <br/>
 <br/>
-<a href="%(unsub_href)s">Unusbscribe</a>
+<a href="%(manage_href)s">Manage alerts</a> | <a href="%(unsub_href)s">Unusbscribe</a>
 </body>
 </html>'''
 GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
@@ -59,7 +59,7 @@ Check them out here: %(href)s
 
 - VitaminD
 
-Unsubscribe here: %(unsub_href)s
+Naviagte here to manage alerts: %(manage_href)s
 '''
 
 LOST_CITIES_EMAIL_SUBJ = 'You lost some VitaminD opportunities :('
@@ -75,7 +75,7 @@ LOST_CITIES_EMAIL_TMPL = '''\
 - VitaminD
 <br/>
 <br/>
-<a href="%(unsub_href)s">Unusbscribe</a>
+<a href="%(manage_href)s">Manage alerts</a> | <a href="%(unsub_href)s">Unusbscribe</a>
 </body>
 </html>'''
 LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
@@ -85,7 +85,7 @@ Check them out here to make sure you don't need to change your plans: %(href)s
 
 - VitaminD
 
-Navigate here to unsubscribe: %(unsub_href)s
+Naviagte here to manage alerts: %(manage_href)s
 '''
 
 
@@ -111,6 +111,7 @@ def send_alert(today, alert):
     }
   tmpl_params['href'] = '%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&weath_type=%(weath_type)s&emailAlert=true' % tmpl_params
   tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(user_alert_id)s?userUUID=%(user_uuid)s' % tmpl_params
+  tmpl_params['manage_href'] = '%(base_url)s/user_alert/manage?userUUID=%(user_uuid)s' % tmpl_params
 
   body = html_tmpl % tmpl_params
   body_plain = plain_tmpl % tmpl_params

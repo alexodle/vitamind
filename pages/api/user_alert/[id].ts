@@ -16,15 +16,13 @@ async function updateAlert(req: NextApiRequest, res: NextApiResponse) {
   // Treat an empty request as a "touch" that reactivates the user alert
   if (Object.keys(update).length === 0) {
     await toggleUserAlert(id, userUUID, true)
-    return
+  } else {
+    const user = await getUserByUUID(userUUID)
+    const cityID = update.city_id as number
+    const maxDriveMins = update.max_drive_minutes as number
+    const weathType = update.weath_type as WeathType
+    await createOrUpdateUserAlert(user.email, cityID, maxDriveMins / 60, weathType)
   }
-
-  const user = await getUserByUUID(userUUID)
-
-  const cityID = update.city_id as number
-  const maxDriveMins = update.max_drive_minutes as number
-  const weathType = update.weath_type as WeathType
-  await createOrUpdateUserAlert(user.email, cityID, maxDriveMins / 60, weathType)
 
   res.status(204).send({})
 }
@@ -37,6 +35,8 @@ async function deactivateAlert(req: NextApiRequest, res: NextApiResponse) {
   }
 
   await toggleUserAlert(id, userUUID, false)
+
+  res.status(204).send({})
 }
 
 export default createRequestHandler({
