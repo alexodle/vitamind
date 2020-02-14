@@ -265,21 +265,17 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
           )}
         </div>
       </section>
-      <section>
-        <div>
-          {props.forecasts.length ? <ForecastsView {...props} /> : (
-            <Fragment>
-              <Alert status='info'>
-                No VitaminD was found within a {props.driveHoursRequested} hour of {props.city.name}.
+      {props.forecasts.length ? <ForecastsView {...props} /> : (
+        <Fragment>
+          <Alert status='info'>
+            No VitaminD was found within a {props.driveHoursRequested} hour of {props.city.name}.
                 Showing results for {MAX_DRIVE_MINUTES / 60} hours.
               </Alert>
-              {!props.forecastsOutsideRadius.length ? renderSadFace() : (
-                <ForecastsView {...props} forecasts={props.forecastsOutsideRadius} driveHoursRequested={MAX_DRIVE_MINUTES / 60} />
-              )}
-            </Fragment>
+          {!props.forecastsOutsideRadius.length ? renderSadFace() : (
+            <ForecastsView {...props} forecasts={props.forecastsOutsideRadius} driveHoursRequested={MAX_DRIVE_MINUTES / 60} />
           )}
-        </div>
-      </section>
+        </Fragment>
+      )}
       <style jsx>{`
         section {
           margin-bottom: 40px;

@@ -4,7 +4,7 @@ import { parseCookies, setCookie } from 'nookies'
 import { SyntheticEvent, useState } from 'react'
 import { DEFAULT_CITY, HARDCODED_DARK_CITIES } from '../gen/ts/db_constants'
 import { Layout } from '../src/components/Layout'
-import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS, COOKIE_MAX_AGE, DEFAULT_COOKIE_OPTIONS } from '../src/constants'
+import { DEFAULT_COOKIE_OPTIONS, DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
 import { WeathType } from '../src/types'
 import { isValidWeathType } from '../src/util'
 

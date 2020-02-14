@@ -1,10 +1,10 @@
 import { partition } from 'lodash';
 import { NextApiRequest, NextApiResponse } from "next";
-import { getCity, getRecommendationsForCity, getDailyForecastsForCities } from '../../src/access';
+import { getCity, getDailyForecastsForCities, getRecommendationsForCity } from '../../src/access';
 import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from "../../src/constants";
 import { InvalidRequestError, NotFoundError } from '../../src/errors';
 import { createRequestHandler } from '../../src/requestHandler';
-import { ProcessedForecast, WeathResult, WeathType, ProcessedDailyForecast } from "../../src/types";
+import { ProcessedDailyForecast, WeathResult, WeathType } from "../../src/types";
 import { isValidWeathType } from '../../src/util';
 
 const DEFAULT_LIMIT = 10

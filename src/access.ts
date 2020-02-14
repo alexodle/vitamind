@@ -5,7 +5,7 @@ import { MAX_DRIVE_MINUTES, VALID_DRIVE_HOURS } from '../src/constants'
 import { sendConfirmationEmail } from './emailConfAccess'
 import { InvalidRequestError, NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
-import { City, ProcessedForecast, User, UserAlert, WeathType, ProcessedDailyForecast } from './types'
+import { City, ProcessedDailyForecast, ProcessedForecast, User, UserAlert, WeathType } from './types'
 import { isValidWeathType } from './util'
 
 const NDAYS = 6
