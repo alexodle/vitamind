@@ -33,12 +33,6 @@ interface ButtonProps {
   onClick: () => void
 }
 
-const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'
-
-const Button: FunctionComponent<ButtonProps> = ({ children, onClick, disabled }) => (
-  <a href="#" onClick={ev => { ev.preventDefault(); if (!disabled) { onClick(); } }}>{children}</a>
-)
-
 const rowStyles = css`
   .alert-display, .buttons {
     display: inline-block;
@@ -53,6 +47,12 @@ const rowStyles = css`
     text-decoration-line: line-through;
   }
 `
+
+const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'
+
+const Button: FunctionComponent<ButtonProps> = ({ children, onClick, disabled }) => (
+  <a href="#" onClick={ev => { ev.preventDefault(); if (!disabled) { onClick(); } }}>{children}</a>
+)
 
 const EditAlertRow: FunctionComponent<EditAlerRowProps> = ({ userAlert, onSave, onCancel, isSubmitting }) => {
   const [cityID, setCityID] = useState(userAlert.city_id.toString())

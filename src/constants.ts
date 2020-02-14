@@ -1,5 +1,6 @@
 import { WeathType } from "./types"
 
+export const DEFAULT_FORECAST_LIMIT = 10
 export const DEFAULT_DRIVE_HOURS = 6
 export const VALID_DRIVE_HOURS = [4, 6, 8, 12, 20]
 

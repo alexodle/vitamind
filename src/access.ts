@@ -183,23 +183,41 @@ export async function toggleUserAlert(userAlertID: number, userUUID: string, act
   }
 }
 
-export async function getAlertsForUser(userUUID: string): Promise<UserAlert[]> {
+async function getUserAlertInternal(key: string, value: any): Promise<UserAlert[]> {
   const result = await pool.query(`
     SELECT
       a.id id,
       a.user_id user_id,
+      u.email user_email,
       a.city_id city_id,
+      c.name city_name,
       a.max_drive_minutes max_drive_minutes,
       a.weath_type weath_type,
-      a.active active,
-      c.name city_name
+      a.active active
     FROM user_alert a
     JOIN users u ON u.id = a.user_id
     JOIN city c ON c.id = a.city_id
-    WHERE u.user_uuid = $1;
-    `, [userUUID])
-  if (result.rows.length < 1) {
+    WHERE ${key} = $1;
+    `, [value])
+  const results: UserAlert[] = result.rows.map(r => ({
+    id: r.id,
+    city: { id: r.city_id, name: r.city_name },
+    user: { id: r.user_id, email: r.user_email },
+    max_drive_minutes: r.max_drive_minutes,
+    weath_type: r.weath_type,
+    active: r.active,
+  }))
+  return results
+}
+
+export async function getAlertsForUser(userUUID: string): Promise<UserAlert[]> {
+  return await getUserAlertInternal('u.user_uuid', userUUID)
+}
+
+export async function getUserAlertByID(alertID: number): Promise<UserAlert> {
+  const alerts = await getUserAlertInternal('a.id', alertID)
+  if (alerts.length !== 1) {
     throw new NotFoundError()
   }
-  return result.rows
+  return alerts[0]
 }

@@ -1,13 +1,11 @@
 import { partition } from 'lodash';
 import { NextApiRequest, NextApiResponse } from "next";
 import { getCity, getDailyForecastsForCities, getRecommendationsForCity } from '../../src/access';
-import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from "../../src/constants";
+import { DEFAULT_DRIVE_HOURS, DEFAULT_FORECAST_LIMIT, VALID_DRIVE_HOURS } from "../../src/constants";
 import { InvalidRequestError, NotFoundError } from '../../src/errors';
 import { createRequestHandler } from '../../src/requestHandler';
 import { ProcessedDailyForecast, WeathResult, WeathType } from "../../src/types";
 import { isValidWeathType } from '../../src/util';
-
-const DEFAULT_LIMIT = 10
 
 function safeGetDriveHours(req: NextApiRequest): number {
   let driveHours = DEFAULT_DRIVE_HOURS
@@ -28,7 +26,7 @@ function safeGetWeathType(req: NextApiRequest): WeathType {
 }
 
 async function get(req: NextApiRequest, res: NextApiResponse) {
-  const limit = DEFAULT_LIMIT
+  const limit = DEFAULT_FORECAST_LIMIT
 
   const cityIDStr = req.query.cityID as string
   if (!cityIDStr) {

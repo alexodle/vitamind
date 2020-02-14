@@ -7,12 +7,11 @@ export interface User {
 
 export interface UserAlert {
   id: number
-  user_id: number
-  city_id: number
+  user: Omit<User, 'email_confirmed'>
+  city: Omit<City, 'selectable'>
   max_drive_minutes: number
   weath_type: WeathType
-  active?: boolean
-  city_name?: string
+  active: boolean
 }
 
 export interface UserConf {
@@ -21,7 +20,7 @@ export interface UserConf {
   conf_timestampz?: Date
 }
 
-export interface ProcessedDailyForecast extends DailyForecast {
+export interface ProcessedDailyForecast {
   date: Date | string
   city_id: number
   mintemp: number

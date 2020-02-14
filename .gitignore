@@ -6,3 +6,5 @@ node_modules/
 .vscode/
 gen/
 *.pyc
+package-lock.json
+build/
