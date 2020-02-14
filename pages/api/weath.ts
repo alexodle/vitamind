@@ -12,14 +12,12 @@ const DEFAULT_LIMIT = 10
 function safeGetDriveHours(req: NextApiRequest): number {
   let driveHours = DEFAULT_DRIVE_HOURS
 
-  try {
-    if (req.query.driveHours) {
-      const driveHoursParam = parseInt(req.query.driveHours as string, 10)
-      if (VALID_DRIVE_HOURS.indexOf(driveHoursParam) !== -1) {
-        driveHours = driveHoursParam
-      }
+  if (req.query.driveHours) {
+    const driveHoursParam = parseInt(req.query.driveHours as string, 10)
+    if (VALID_DRIVE_HOURS.indexOf(driveHoursParam) !== -1) {
+      driveHours = driveHoursParam
     }
-  } catch { }
+  }
 
   return driveHours
 }
@@ -58,8 +56,8 @@ async function get(req: NextApiRequest, res: NextApiResponse) {
 
   // include forecasts for source city
   let sourceCityForecasts: ProcessedDailyForecast[] = []
-  if (forecasts.length) {
-    const dateForecasted = forecasts[0].dateForecasted
+  if (allForecasts.length) {
+    const dateForecasted = allForecasts[0].dateForecasted
     const results = await getDailyForecastsForCities([cityID], dateForecasted)
     sourceCityForecasts = results[cityID]
   }

@@ -57,11 +57,12 @@ function normalizeWeathResults(its: ProcessedForecast[]) {
   })
 }
 
-function renderForecastDay(df: ProcessedDailyForecast): JSX.Element {
+function renderForecastDay(df: ProcessedDailyForecast, weathType: WeathType): JSX.Element {
   const [img, alt] = getWeatherImg(df)
+  const isGoodDay = weathType === 'sunny' ? df.isGoodDay : df.isWarmDay
   return (
     <div className='daily-forecast-container'>
-      <h4 className={"daily-forecast" + (df.isGoodDay ? " good-day" : "")}>{friendlyDay((df.date as Date).getDay())}</h4>
+      <h4 className={"daily-forecast" + (isGoodDay ? " good-day" : "")}>{friendlyDay((df.date as Date).getDay())}</h4>
       <img className='weather-icon' src={`${IMG_SRC}/${img}`} alt={alt} /> {renderTemp(df.maxtemp)}
       <style jsx>{`
         h4 {
@@ -97,7 +98,7 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
           {sourceCityForecasts.map(df => {
             return (
               <li key={(df.date as Date).getDate()}>
-                {renderForecastDay(df)}
+                {renderForecastDay(df, weathType)}
               </li>
             )
           })}
@@ -118,7 +119,7 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
               {f.results.map(df => {
                 return (
                   <li key={(df.date as Date).getDate()}>
-                    {renderForecastDay(df)}
+                    {renderForecastDay(df, weathType)}
                   </li>
                 )
               })}
@@ -268,19 +269,14 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
       {props.forecasts.length ? <ForecastsView {...props} /> : (
         <Fragment>
           <Alert status='info'>
-            No VitaminD was found within a {props.driveHoursRequested} hour of {props.city.name}.
-                Showing results for {MAX_DRIVE_MINUTES / 60} hours.
-              </Alert>
+            No {friendlyWeathType(props.weathType)} was found within a {props.driveHoursRequested} hour drive of {props.city.name}.
+            Showing results for {MAX_DRIVE_MINUTES / 60} hours.
+          </Alert>
           {!props.forecastsOutsideRadius.length ? renderSadFace() : (
             <ForecastsView {...props} forecasts={props.forecastsOutsideRadius} driveHoursRequested={MAX_DRIVE_MINUTES / 60} />
           )}
         </Fragment>
       )}
-      <style jsx>{`
-        section {
-          margin-bottom: 40px;
-        }
-      `}</style>
     </Layout>
   )
 }
