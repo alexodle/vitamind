@@ -5,7 +5,7 @@ import { MAX_DRIVE_MINUTES, VALID_DRIVE_HOURS } from '../src/constants'
 import { sendConfirmationEmail } from './emailConfAccess'
 import { InvalidRequestError, NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
-import { City, ProcessedForecast, User, UserAlert, WeathType } from './types'
+import { City, ProcessedForecast, User, UserAlert, WeathType, ProcessedDailyForecast } from './types'
 import { isValidWeathType } from './util'
 
 const NDAYS = 6
@@ -37,36 +37,17 @@ async function getLatestForecastDate(): Promise<Date> {
 }
 
 async function buildProcessedForecasts(dateForecasted: Date, processedFcResults: any[]): Promise<ProcessedForecast[]> {
-  const today = new Date()
-  const cities: number[] = processedFcResults.map(pfcr => pfcr.city_id)
+  const cityIDs: number[] = processedFcResults.map(pfcr => pfcr.city_id)
+  const dailiesByCityID = await getDailyForecastsForCities(cityIDs, dateForecasted)
 
-  const [fc_date_start, fc_date_end] = [today, addDays(dateForecasted, NDAYS)]
-  const fcResults = await pool.query(`
-    SELECT city_id, fc_date, mintemp, maxtemp, minfeel, maxfeel, cloudcover, rainpct, date_forecasted, is_sunny, is_warm
-    FROM forecast
-    WHERE date_forecasted = $1 AND fc_date >= $2 AND fc_date < $3 AND city_id = ANY($4::int[])
-    ORDER BY city_id, fc_date;
-  `, [dateForecasted, fc_date_start, fc_date_end, cities]
-  )
-
-  const fcResultsByCity = groupBy(fcResults.rows, r => r.city_id)
   const pfcs: ProcessedForecast[] = processedFcResults.map(pfcr => ({
-    city: pfcr.city_name,
+    city: { id: pfcr.city_id, name: pfcr.city_name },
+    dateForecasted,
     recommended: pfcr.is_recommended,
     maxConsecutiveGoodDays: pfcr.max_consecutive_good_days,
     maxConsecutiveWarmDays: pfcr.max_consecutive_warm_days,
     driveTimeMinutes: pfcr.gmap_drive_time_minutes,
-    results: fcResultsByCity[pfcr.city_id].map(r => ({
-      date: hackNormalizePgDate(r.fc_date),
-      mintemp: r.mintemp,
-      maxtemp: r.maxtemp,
-      maxfeel: r.maxfeel,
-      minfeel: r.minfeel,
-      cloudcover: r.cloudcover,
-      rainpct: r.rainpct,
-      isGoodDay: r.is_sunny,
-      isWarmDay: r.is_warm,
-    }))
+    results: dailiesByCityID[pfcr.city_id],
   }))
 
   return pfcs
@@ -94,6 +75,34 @@ export async function getCity(id: number): Promise<City> {
     throw new NotFoundError()
   }
   return result.rows[0]
+}
+
+export async function getDailyForecastsForCities(cityIDs: number[], dateForecasted: Date): Promise<{ [cityID: string]: ProcessedDailyForecast[] }> {
+  const today = new Date()
+  const [fc_date_start, fc_date_end] = [today, addDays(dateForecasted, NDAYS)]
+
+  const result = await pool.query(`
+    SELECT city_id, fc_date, mintemp, maxtemp, minfeel, maxfeel, cloudcover, rainpct, date_forecasted, is_sunny, is_warm
+    FROM forecast
+    WHERE date_forecasted = $1 AND fc_date >= $2 AND fc_date < $3 AND city_id = ANY($4::int[])
+    ORDER BY city_id, fc_date;
+  `, [dateForecasted, fc_date_start, fc_date_end, cityIDs]
+  )
+
+  const dailies: ProcessedDailyForecast[] = result.rows.map(r => ({
+    date: hackNormalizePgDate(r.fc_date),
+    city_id: r.city_id,
+    mintemp: r.mintemp,
+    maxtemp: r.maxtemp,
+    maxfeel: r.maxfeel,
+    minfeel: r.minfeel,
+    cloudcover: r.cloudcover,
+    rainpct: r.rainpct,
+    isGoodDay: r.is_sunny,
+    isWarmDay: r.is_warm,
+  }))
+
+  return groupBy(dailies, d => d.city_id.toString())
 }
 
 export async function getRecommendationsForCity(targetCityID: number, weathType: WeathType, limit: number): Promise<ProcessedForecast[]> {

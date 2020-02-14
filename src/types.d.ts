@@ -23,6 +23,7 @@ export interface UserConf {
 
 export interface ProcessedDailyForecast extends DailyForecast {
   date: Date | string
+  city_id: number
   mintemp: number
   maxtemp: number
   maxfeel: number
@@ -34,7 +35,8 @@ export interface ProcessedDailyForecast extends DailyForecast {
 }
 
 export interface ProcessedForecast {
-  city: string
+  city: Omit<City, 'selectable'>,
+  dateForecasted: Date
   results: ProcessedDailyForecast[]
   recommended: boolean
   maxConsecutiveGoodDays: number
@@ -53,6 +55,7 @@ export interface City {
 export type WeathType = 'sunny' | 'warm'
 
 export interface WeathResult {
+  sourceCityForecasts: ProcessedDailyForecast[]
   forecasts: ProcessedForecast[]
   city: City
   limit: number

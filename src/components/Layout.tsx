@@ -11,10 +11,6 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         name="viewport"
         content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
       />
-      <link
-        href="https://fonts.googleapis.com/css?family=IBM+Plex+Serif&display=swap"
-        rel="stylesheet"
-      />
     </Head>
     <h1 className='logo'><Link href="/"><a className='unstyled'>VitaminD</a></Link></h1>
     {children}
@@ -29,6 +25,7 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
       }
       .logo {
         font-size: 40px;
+        font-style: italic;
       }
       a.unstyled {
         text-decoration: none;
@@ -43,7 +40,10 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
 
     <style jsx global>{`
       body {
-        font-family: 'IBM Plex Serif', serif;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      section {
+        margin-bottom: 40px;
       }
     `}</style>
   </div >

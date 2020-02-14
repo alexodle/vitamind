@@ -1,10 +1,10 @@
 import { partition } from 'lodash';
 import { NextApiRequest, NextApiResponse } from "next";
-import { getCity, getRecommendationsForCity } from '../../src/access';
+import { getCity, getRecommendationsForCity, getDailyForecastsForCities } from '../../src/access';
 import { DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from "../../src/constants";
 import { InvalidRequestError, NotFoundError } from '../../src/errors';
 import { createRequestHandler } from '../../src/requestHandler';
-import { ProcessedForecast, WeathResult, WeathType } from "../../src/types";
+import { ProcessedForecast, WeathResult, WeathType, ProcessedDailyForecast } from "../../src/types";
 import { isValidWeathType } from '../../src/util';
 
 const DEFAULT_LIMIT = 10
@@ -49,17 +49,27 @@ async function get(req: NextApiRequest, res: NextApiResponse) {
   const weathType = safeGetWeathType(req)
 
   const driveHours = safeGetDriveHours(req)
-  const allForecasts: ProcessedForecast[] = await getRecommendationsForCity(city.id, weathType, limit)
+  const allForecasts = await getRecommendationsForCity(city.id, weathType, limit)
 
   // forecasts may include recommendations outside of our target radius
   const driveTimeMinutes = driveHours * 60
   const [forecasts, forecastsOutsideRadius] = partition(allForecasts, f => f.driveTimeMinutes <= driveTimeMinutes)
-
   const minimumDriveHours = allForecasts.length ? allForecasts[0].driveTimeMinutes * 60 : -1
+
+  // include forecasts for source city
+  let sourceCityForecasts: ProcessedDailyForecast[] = []
+  if (forecasts.length) {
+    const dateForecasted = forecasts[0].dateForecasted
+    const results = await getDailyForecastsForCities([cityID], dateForecasted)
+    sourceCityForecasts = results[cityID]
+  }
+
   const result: WeathResult = {
+    sourceCityForecasts,
+    forecasts,
+
     limit,
     weathType,
-    forecasts,
     city,
     driveHoursRequested: driveHours,
     minimumDriveHours,
@@ -67,7 +77,6 @@ async function get(req: NextApiRequest, res: NextApiResponse) {
     // Only include forecastsOutsideRadius if there are no forecasts within radius
     forecastsOutsideRadius: forecasts.length === 0 ? forecastsOutsideRadius : [],
   }
-
   res.status(200).send(result)
 }
 

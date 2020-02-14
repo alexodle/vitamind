@@ -76,9 +76,6 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
         </figure>
       </section>
       <style jsx>{`
-      section {
-        margin-bottom: 40px;
-      }
       label {
         display: block;
         margin-bottom: 20px;

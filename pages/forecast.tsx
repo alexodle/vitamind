@@ -20,7 +20,7 @@ function friendlyDay(day: number): string {
   return DAYS[day]
 }
 
-const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'
+const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'sunny weather' : 'warm weather'
 
 function friendlyHoursText(driveTimeMinutes: number): string {
   const driveTimeHours = Math.floor(driveTimeMinutes / 60)
@@ -47,9 +47,13 @@ function renderTemp(temp: number) {
   return `${Math.round(temp)}\u00B0F`
 }
 
+function normalizeDailyForecast(df: ProcessedDailyForecast) {
+  df.date = new Date(df.date)
+}
+
 function normalizeWeathResults(its: ProcessedForecast[]) {
   its.forEach(f => {
-    f.results.forEach(df => { df.date = new Date(df.date) })
+    f.results.forEach(normalizeDailyForecast)
   })
 }
 
@@ -84,13 +88,13 @@ function renderForecastDay(df: ProcessedDailyForecast): JSX.Element {
   )
 }
 
-const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
-  <div>
-    {fcs.map((f: ProcessedForecast) => (
-      <div key={f.city} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
-        <h3>{f.city} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
+const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, weathType, sourceCityForecasts, forecasts }) => {
+  return (
+    <Fragment>
+      <section>
+        <h2>Stay home? ({city.name})</h2>
         <ol className='daily-forecast-list'>
-          {f.results.map(df => {
+          {sourceCityForecasts.map(df => {
             return (
               <li key={(df.date as Date).getDate()}>
                 {renderForecastDay(df)}
@@ -98,29 +102,45 @@ const renderForecasts = (fcs: ProcessedForecast[]): JSX.Element => (
             )
           })}
         </ol>
-      </div>
-    ))}
-    <style jsx>{`
-      .daily-forecast-list {
-        padding-inline-start: 0;
-      }
-
-      .daily-forecast-list li {
-        display: inline-block;
-        margin-right: 20px;
-        margin-bottom: 20px;
-      }
-    `}</style>
-  </div>
-)
-
-const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, weathType, forecasts, }) => {
-  return (
-    <div>
-      <h2>We found {forecasts.length} {forecasts.length === 1 ? 'destination' : 'destinations'}</h2>
-      <p style={{ marginBottom: '30px', transform: 'translateY(-10px)' }}><small><b>{friendlyWeathType(weathType)}</b> within a <b>{driveHoursRequested} hour</b> drive of <b>{city.name}</b></small></p>
-      {renderForecasts(forecasts)}
-    </div >
+      </section>
+      <section>
+        <h2>Or get out?</h2>
+        <p className='sub-header'>
+          We found <b>{forecasts.length} {forecasts.length === 1 ? 'destination' : 'destinations'}</b>{' '}
+          with <b>{friendlyWeathType(weathType)}</b>{' '}
+          within a <b>{driveHoursRequested} hour</b>{' '}
+          drive of <b>{city.name}</b>
+        </p>
+        {forecasts.map((f: ProcessedForecast) => (
+          <div key={f.city.id} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
+            <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
+            <ol className='daily-forecast-list'>
+              {f.results.map(df => {
+                return (
+                  <li key={(df.date as Date).getDate()}>
+                    {renderForecastDay(df)}
+                  </li>
+                )
+              })}
+            </ol>
+          </div>
+        ))}
+      </section>
+      <style jsx>{`
+        .sub-header {
+          transform: translateY(-10px);
+          margin-bottom: 20px;
+        }
+        .daily-forecast-list {
+          padding-inline-start: 0;
+        }
+        .daily-forecast-list li {
+          display: inline-block;
+          margin-right: 20px;
+          margin-bottom: 20px;
+        }
+        `}</style>
+    </Fragment >
   )
 }
 
@@ -145,22 +165,6 @@ const renderSadFace = () => (
   </div>
 )
 
-const renderBody = (props: ForecastProps) => (
-  <div>
-    {props.forecasts.length ? <ForecastsView {...props} /> : (
-      <Fragment>
-        <Alert status='info'>
-          No VitaminD was found within a {props.driveHoursRequested} hour of {props.city.name}.
-          Showing results for {MAX_DRIVE_MINUTES / 60} hours.
-        </Alert>
-        {!props.forecastsOutsideRadius.length ? renderSadFace() : (
-          <ForecastsView {...props} forecasts={props.forecastsOutsideRadius} driveHoursRequested={MAX_DRIVE_MINUTES / 60} />
-        )}
-      </Fragment>
-    )}
-  </div>
-)
-
 const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   const [isCreatingAlert, setIsCreatingAlert] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -169,6 +173,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
 
   normalizeWeathResults(props.forecasts)
   normalizeWeathResults(props.forecastsOutsideRadius)
+  props.sourceCityForecasts.forEach(normalizeDailyForecast)
 
   async function onSetAlert(ev: SyntheticEvent) {
     ev.preventDefault()
@@ -261,7 +266,19 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
         </div>
       </section>
       <section>
-        {renderBody(props)}
+        <div>
+          {props.forecasts.length ? <ForecastsView {...props} /> : (
+            <Fragment>
+              <Alert status='info'>
+                No VitaminD was found within a {props.driveHoursRequested} hour of {props.city.name}.
+                Showing results for {MAX_DRIVE_MINUTES / 60} hours.
+              </Alert>
+              {!props.forecastsOutsideRadius.length ? renderSadFace() : (
+                <ForecastsView {...props} forecasts={props.forecastsOutsideRadius} driveHoursRequested={MAX_DRIVE_MINUTES / 60} />
+              )}
+            </Fragment>
+          )}
+        </div>
       </section>
       <style jsx>{`
         section {
