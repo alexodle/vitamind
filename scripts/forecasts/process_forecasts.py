@@ -31,7 +31,7 @@ def is_sunny_day(rainpct, cloudcover):
 
 
 def is_warm_day(rainpct, cloudcover, maxtemp, maxfeel):
-  return rainpct < 20.0 and cloudcover < 100.0 and maxtemp >= 67.0 and maxfeel <= 82.0
+  return rainpct < 20.0 and cloudcover < 100.0 and maxtemp >= 67.0 and maxfeel <= 90.0
 
 
 def max_consecutive(lst, cmp):

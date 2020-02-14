@@ -11,6 +11,7 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         name="viewport"
         content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
       />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     </Head>
     <h1 className='logo'><Link href="/"><a className='unstyled'>VitaminD</a></Link></h1>
     {children}
