@@ -97,7 +97,11 @@ const EmailAlertHTML: FunctionComponent<EmailAlertProps> = ({ userAlert, recomme
           <Section>
             {!recommendations.length ? renderNoDestinations() : (
               <>
-                <h2>{Math.min(recommendations.length, MAX_RESULTS_IN_EMAIL)} closest destinations</h2>
+                <h2>
+                  {recommendations.length > MAX_RESULTS_IN_EMAIL ?
+                    `Your ${MAX_RESULTS_IN_EMAIL} closest destinations` :
+                    `We found ${recommendations.length} destination${recommendations.length < 2 ? '' : 's'}`}
+                </h2>
                 {recommendations.slice(0, MAX_RESULTS_IN_EMAIL).map(f => (
                   <div key={f.city.id} className="city-forecast recommended">
                     <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
