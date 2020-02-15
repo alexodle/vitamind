@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-unfetch'
-import { WeathType, UserAlert } from './types'
+import { City, UserAlert, WeathType } from './types'
 
 export async function toggleUserAlert(alertID: number, userUUID: string, active: boolean) {
   const method = active ? 'PUT' : 'DELETE'
@@ -11,7 +11,7 @@ export async function toggleUserAlert(alertID: number, userUUID: string, active:
 
 export async function updateUserAlert(alertID: number, userUUID: string, cityID: number, maxDriveMinutes: number, weathType: WeathType) {
   const data: Partial<UserAlert> = {
-    city_id: cityID,
+    city: { id: cityID } as City,
     max_drive_minutes: maxDriveMinutes,
     weath_type: weathType,
   }

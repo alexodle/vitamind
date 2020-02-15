@@ -18,7 +18,7 @@ async function updateAlert(req: NextApiRequest, res: NextApiResponse) {
     await toggleUserAlert(id, userUUID, true)
   } else {
     const user = await getUserByUUID(userUUID)
-    const cityID = update.city_id as number
+    const cityID = update.city!.id as number
     const maxDriveMins = update.max_drive_minutes as number
     const weathType = update.weath_type as WeathType
     await createOrUpdateUserAlert(user.email, cityID, maxDriveMins / 60, weathType)

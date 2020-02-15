@@ -1,13 +1,12 @@
 import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
-import { Fragment, FunctionComponent, useState, SyntheticEvent } from 'react'
-import { HARDCODED_DARK_CITIES } from '../../gen/ts/db_constants'
+import { Fragment, FunctionComponent, useState } from 'react'
+import css from 'styled-jsx/css'
 import { toggleUserAlert, updateUserAlert } from '../../src/clientAPI'
 import { Alert } from '../../src/components/Alert'
 import { Layout } from '../../src/components/Layout'
 import { VALID_DRIVE_HOURS } from '../../src/constants'
 import { GetUserAlertsResult, User, UserAlert, WeathType } from '../../src/types'
-import css from 'styled-jsx/css'
 
 export interface ManageAlertsProps {
   user: User
@@ -55,13 +54,11 @@ const Button: FunctionComponent<ButtonProps> = ({ children, onClick, disabled })
 )
 
 const EditAlertRow: FunctionComponent<EditAlerRowProps> = ({ userAlert, onSave, onCancel, isSubmitting }) => {
-  const [cityID, setCityID] = useState(userAlert.city_id.toString())
   const [driveHours, setDriveHours] = useState((userAlert.max_drive_minutes / 60).toString())
   const [weathType, setWeathType] = useState(userAlert.weath_type)
 
   const onSaveClick = () => {
     onSave({
-      city_id: parseInt(cityID, 10),
       max_drive_minutes: parseInt(driveHours, 10) * 60,
       weath_type: weathType,
     })
@@ -80,12 +77,7 @@ const EditAlertRow: FunctionComponent<EditAlerRowProps> = ({ userAlert, onSave, 
             <option key={h} value={h.toString()}>{h} hour</option>
           )}
         </select>
-        {' '}drive of{' '}
-        <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isSubmitting}>
-          {HARDCODED_DARK_CITIES.map(([name, cid]) =>
-            <option key={cid} value={cid.toString()}>{name}</option>
-          )}
-        </select>
+        {' '}drive of{' '}<b>{userAlert.city.name}</b>
       </span>
       <span className='buttons'>
         <Button onClick={onCancel} disabled={isSubmitting}>Cancel</Button> | <Button onClick={onSaveClick} disabled={isSubmitting}>Update</Button>
@@ -117,7 +109,7 @@ const AlertRow: FunctionComponent<AlertRowProps> = ({ user, userAlert, onUpdate,
   const saveChanges = async (update: Partial<UserAlert>) => {
     setIsSubmitting(true)
     try {
-      await updateUserAlert(userAlert.id, user.user_uuid!, update.city_id!, update.max_drive_minutes!, update.weath_type!)
+      await updateUserAlert(userAlert.id, user.user_uuid!, userAlert.city.id, update.max_drive_minutes!, update.weath_type!)
       onUpdate(update, 'props')
       setIsEditing(false)
     } catch (e) {
@@ -148,7 +140,7 @@ const AlertRow: FunctionComponent<AlertRowProps> = ({ user, userAlert, onUpdate,
   const renderRow = () => (
     <Fragment>
       <span className={`alert-display ${userAlert.active ? 'active' : 'inactive'}`}>
-        <b>{friendlyWeathType(userAlert.weath_type)}</b> within a <b>{userAlert.max_drive_minutes / 60} hour</b> drive of <b>{userAlert.city_name}</b>
+        <b>{friendlyWeathType(userAlert.weath_type)}</b> within a <b>{userAlert.max_drive_minutes / 60} hour</b> drive of <b>{userAlert.city.name}</b>
       </span>
       <span className='buttons'>{renderButtons()}</span>
       <style jsx>{rowStyles}</style>

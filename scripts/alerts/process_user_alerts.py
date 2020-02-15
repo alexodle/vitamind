@@ -1,14 +1,17 @@
-import psycopg2
 import os
-from datetime import date
 import smtplib
 import ssl
-from email.mime.text import MIMEText
+from datetime import date
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
+import psycopg2
+import requests
 
 conn_str = os.environ['POSTGRES_CONNECTION_STR']
 conn = psycopg2.connect(conn_str)
+
+base_url = os.environ['BASE_URL']
 
 email_host = os.environ['EMAIL_HOST']
 email_user = os.environ['EMAIL_USER']
@@ -20,12 +23,15 @@ server = smtplib.SMTP_SSL(email_host, 465)
 
 COLS = [
   'user_alert.id user_alert_id',
-  'email',
+  'users.email user_email',
+  'users.id user_id',
   'users.user_uuid user_uuid',
   'user_alert.city_id city_id',
   'city.name city_name',
   'user_alert.max_drive_minutes max_drive_minutes',
   'user_alert.weath_type weath_type',
+  'start_date_forecasted',
+  'end_date_forecasted',
   'cities_gained_csl',
   'cities_lost_csl',
   'did_change',
@@ -33,25 +39,16 @@ COLS = [
 IDXS = dict((c.split(' ')[-1], i) for i, c in enumerate(COLS))
 
 def get(row, col):
-  return row[IDXS[col]]
+  if col not in IDXS:
+    raise Exception('%s not in IDXS [%s]' % (col, ','.join(IDXS.iterkeys())))
+  idx = IDXS[col]
+  if idx >= len(row):
+    raise Exception('%s has an invalid index in row, %d >= %d' % (col, idx, len(row)))
+  return row[idx]
 
 
 EMAIL_DISPLAY_NAME = 'VitaminD'
 
-GAINED_CITIES_EMAIL_SUBJ = 'New VitaminD opportunities detected!'
-GAINED_CITIES_EMAIL_TMPL = '''\
-<html>
-<body>
-<b>%(email)s</b>,
-<p>You have new opportunities for <b>%(weath_type)s weather</b> within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="%(href)s"><b>Check them out here</b></a></p>
-<br/>
-- VitaminD
-<br/>
-<br/>
-<a href="%(manage_href)s">Manage alerts</a> | <a href="%(unsub_href)s">Unusbscribe</a>
-</body>
-</html>'''
 GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 You have new opportunities for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
@@ -62,22 +59,6 @@ Check them out here: %(href)s
 Naviagte here to manage alerts: %(manage_href)s
 '''
 
-LOST_CITIES_EMAIL_SUBJ = 'You lost some VitaminD opportunities :('
-LOST_CITIES_EMAIL_TMPL = '''\
-<html>
-<body>
-<b>%(email)s</b>,
-<p>We detected fewer opportunities than you had yesterday for VitaminD within a <b>%(max_drive_hours)s hour</b> drive of <b>%(city_name)s</b>.</p>
-<p><a href="%(href)s">\
-<b>Check them out here to make sure you don't need to change your plans</b>\
-</a></p>
-<br/>
-- VitaminD
-<br/>
-<br/>
-<a href="%(manage_href)s">Manage alerts</a> | <a href="%(unsub_href)s">Unusbscribe</a>
-</body>
-</html>'''
 LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
 We detected fewer opportunities than you had yesterday for VitaminD within a %(max_drive_hours)s hour drive of %(city_name)s.
@@ -89,20 +70,38 @@ Naviagte here to manage alerts: %(manage_href)s
 '''
 
 
-def send_alert(today, alert):
+def build_html_email(today, cities, alert):
+  cities_gained = [cities[int(cid)] for cid in filter(None, get(alert, 'cities_gained_csl').split(','))]
+  cities_lost = [cities[int(cid)] for cid in filter(None, get(alert, 'cities_lost_csl').split(','))]
+  payload = {
+    'userAlert': {
+      'id': get(alert, 'user_alert_id'),
+      'user': { 'id': get(alert, 'user_id'), 'email': get(alert, 'user_email'), 'user_uuid': get(alert, 'user_uuid') },
+      'city': { 'id': get(alert, 'city_id'), 'name': get(alert, 'city_id') },
+      'max_drive_minutes': get(alert, 'max_drive_minutes'),
+      'weath_type': get(alert, 'weath_type'),
+      'active': True,
+      'start_date_forecasted': get(alert, 'start_date_forecasted').isoformat(),
+      'end_date_forecasted': get(alert, 'end_date_forecasted').isoformat(),
+      'cities_gained': [{'id': cid, 'name': name} for cid, name in cities_gained],
+      'cities_lost': [{'id': cid, 'name': name} for cid, name in cities_lost],
+      'did_change': True,
+    },
+  }
+  r = requests.post('%s/api/emails/alertHTML' % base_url, json=payload)
+  return r.text.encode('utf-8')
+
+
+def build_plaintext_email(today, cities, alert):
   if get(alert, 'cities_gained_csl'):
-    subj = GAINED_CITIES_EMAIL_SUBJ
-    html_tmpl = GAINED_CITIES_EMAIL_TMPL
-    plain_tmpl = GAINED_CITIES_EMAIL_TMPL_PLAIN
+    tmpl = GAINED_CITIES_EMAIL_TMPL_PLAIN
   else:
-    subj = LOST_CITIES_EMAIL_SUBJ
-    html_tmpl = LOST_CITIES_EMAIL_TMPL
-    plain_tmpl = LOST_CITIES_EMAIL_TMPL_PLAIN
+    tmpl = LOST_CITIES_EMAIL_TMPL_PLAIN
 
   tmpl_params = {
-    'base_url': os.environ['BASE_URL'],
+    'base_url': base_url,
     'user_alert_id': get(alert, 'user_alert_id'),
-    'email': get(alert, 'email'),
+    'email': get(alert, 'user_email'),
     'user_uuid': get(alert, 'user_uuid'),
     'max_drive_hours': get(alert, 'max_drive_minutes') / 60,
     'weath_type': get(alert, 'weath_type'),
@@ -113,27 +112,31 @@ def send_alert(today, alert):
   tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(user_alert_id)s?userUUID=%(user_uuid)s' % tmpl_params
   tmpl_params['manage_href'] = '%(base_url)s/user_alert/manage?userUUID=%(user_uuid)s' % tmpl_params
 
-  body = html_tmpl % tmpl_params
-  body_plain = plain_tmpl % tmpl_params
+  return tmpl % tmpl_params
+
+
+def send_alert(today, cities, alert):
+  html = build_html_email(today, cities, alert)
+  plain = build_plaintext_email(today, cities, alert)
 
   message = MIMEMultipart("alternative")
-  message["Subject"] = subj
+  message["Subject"] = 'VitaminD alert triggered'
   message["From"] = '%s <%s>' % (EMAIL_DISPLAY_NAME, email_from)
-  message["To"] = get(alert, 'email')
-  message.attach(MIMEText(body_plain, "plain"))
-  message.attach(MIMEText(body, "html"))
+  message["To"] = get(alert, 'user_email')
+  message.attach(MIMEText(plain, "plain"))
+  message.attach(MIMEText(html, "html"))
 
-  server.sendmail(email_from, get(alert, 'email'), message.as_string())
+  server.sendmail(email_from, get(alert, 'user_email'), message.as_string())
 
 
-def process_alert(today, alert):
+def process_alert(today, cities, alert):
   with conn:
     with conn.cursor() as cur:
       if get(alert, 'did_change'):
-        print 'sending alert to: %s' % get(alert, 'email')
-        send_alert(today, alert)
+        print 'sending alert to: %s' % get(alert, 'user_email')
+        send_alert(today, cities, alert)
       else:
-        print 'not sending alert email to: %s' % get(alert, 'email')
+        print 'not sending alert email to: %s' % get(alert, 'user_email')
       cur.execute('''
         INSERT INTO user_alert_instance(user_alert_id, date, attempts, completed, sent_alert)
         VALUES(%s, %s, 1, TRUE, %s)
@@ -145,8 +148,16 @@ def process_alert(today, alert):
       ''', (get(alert, 'user_alert_id'), today, get(alert, 'did_change'), get(alert, 'did_change')))
 
 
+def get_all_cities():
+  with conn:
+    with conn.cursor() as cur:
+      cur.execute('SELECT id, name FROM city;')
+      return dict((cid, (cid, name)) for cid, name in cur.fetchall())
+
+
 def process_user_alerts():
   today = date.today()
+  cities = get_all_cities()
   with conn:
     with conn.cursor() as cur:
       cur.execute('''
@@ -170,7 +181,7 @@ def process_user_alerts():
         );
       '''.format(', '.join(COLS)), (today, today))
       for row in cur.fetchall():
-        process_alert(today, row)
+        process_alert(today, cities, row)
 
 
 if __name__ == '__main__':

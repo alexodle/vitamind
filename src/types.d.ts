@@ -1,8 +1,14 @@
 export interface User {
   id: number
   email: string
-  email_confirmed: bool
+  email_confirmed: boolean
   user_uuid?: string
+}
+
+export interface City {
+  id: number
+  name: string
+  selectable: string
 }
 
 export interface UserAlert {
@@ -12,6 +18,14 @@ export interface UserAlert {
   max_drive_minutes: number
   weath_type: WeathType
   active: boolean
+}
+
+export interface UserAlertWithStatus extends UserAlert {
+  start_date_forecasted: Date
+  end_date_forecasted: Date
+  cities_gained: Omit<City, 'selectable'>[]
+  cities_lost: Omit<City, 'selectable'>[]
+  did_change: boolean
 }
 
 export interface UserConf {
@@ -41,12 +55,6 @@ export interface ProcessedForecast {
   maxConsecutiveGoodDays: number
   maxConsecutiveWarmDays: number
   driveTimeMinutes: number
-}
-
-export interface City {
-  id: number
-  name: string
-  selectable: string
 }
 
 // API

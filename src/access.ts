@@ -5,7 +5,7 @@ import { MAX_DRIVE_MINUTES, VALID_DRIVE_HOURS } from '../src/constants'
 import { sendConfirmationEmail } from './emailConfAccess'
 import { InvalidRequestError, NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
-import { City, ProcessedDailyForecast, ProcessedForecast, User, UserAlert, WeathType } from './types'
+import { City, ProcessedDailyForecast, ProcessedForecast, User, UserAlert, WeathType, UserAlertWithStatus } from './types'
 import { isValidWeathType } from './util'
 
 const NDAYS = 6
@@ -183,7 +183,7 @@ export async function toggleUserAlert(userAlertID: number, userUUID: string, act
   }
 }
 
-async function getUserAlertInternal(key: string, value: any): Promise<UserAlert[]> {
+export async function getAlertsForUser(userUUID: string): Promise<UserAlert[]> {
   const result = await pool.query(`
     SELECT
       a.id id,
@@ -197,8 +197,8 @@ async function getUserAlertInternal(key: string, value: any): Promise<UserAlert[
     FROM user_alert a
     JOIN users u ON u.id = a.user_id
     JOIN city c ON c.id = a.city_id
-    WHERE ${key} = $1;
-    `, [value])
+    WHERE u.user_uuid = $1;
+    `, [userUUID])
   const results: UserAlert[] = result.rows.map(r => ({
     id: r.id,
     city: { id: r.city_id, name: r.city_name },
@@ -208,16 +208,4 @@ async function getUserAlertInternal(key: string, value: any): Promise<UserAlert[
     active: r.active,
   }))
   return results
-}
-
-export async function getAlertsForUser(userUUID: string): Promise<UserAlert[]> {
-  return await getUserAlertInternal('u.user_uuid', userUUID)
-}
-
-export async function getUserAlertByID(alertID: number): Promise<UserAlert> {
-  const alerts = await getUserAlertInternal('a.id', alertID)
-  if (alerts.length !== 1) {
-    throw new NotFoundError()
-  }
-  return alerts[0]
 }

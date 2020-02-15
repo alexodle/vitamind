@@ -7,45 +7,13 @@ import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
 import { DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES } from '../src/constants'
 import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
-import { isValidEmail } from '../src/util'
+import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEmail } from '../src/util'
 
 export interface ForecastProps extends WeathResult {
   defaultEmail: string
 }
 
-const IMG_SRC = 'imgs'
-
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-function friendlyDay(day: number): string {
-  return DAYS[day]
-}
-
 const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'sunny weather' : 'warm weather'
-
-function friendlyHoursText(driveTimeMinutes: number): string {
-  const driveTimeHours = Math.floor(driveTimeMinutes / 60)
-  if (driveTimeHours < 1) {
-    return 'Less than an hour'
-  } else if (driveTimeHours === 1) {
-    return '1 hour'
-  }
-  return `${driveTimeHours} hours`
-}
-
-function getWeatherImg(df: ProcessedDailyForecast): [string, string] {
-  if (df.rainpct >= 20) {
-    return ['rain_s_cloudy.png', 'Rainy']
-  } else if (df.cloudcover > 75) {
-    return ['cloudy.png', 'Cloudy']
-  } else if (df.cloudcover > 25) {
-    return ['partly_cloudy.png', 'Partly cloudy']
-  }
-  return ['sunny.png', 'Sunny']
-}
-
-function renderTemp(temp: number) {
-  return `${Math.round(temp)}\u00B0F`
-}
 
 function normalizeDailyForecast(df: ProcessedDailyForecast) {
   df.date = new Date(df.date)
@@ -63,7 +31,7 @@ function renderForecastDay(df: ProcessedDailyForecast, weathType: WeathType): JS
   return (
     <div className='daily-forecast-container'>
       <h4 className={"daily-forecast" + (isGoodDay ? " good-day" : "")}>{friendlyDay((df.date as Date).getDay())}</h4>
-      <img className='weather-icon' src={`${IMG_SRC}/${img}`} alt={alt} /> {renderTemp(df.maxtemp)}
+      <img className='weather-icon' src={`imgs/${img}`} alt={alt} /> {friendlyTemp(df.maxtemp)}
       <style jsx>{`
         h4 {
           padding-top: 0px;
@@ -113,7 +81,7 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
           drive of <b>{city.name}</b>
         </p>
         {forecasts.map((f: ProcessedForecast) => (
-          <div key={f.city.id} className={"city-forecast" + (f.recommended ? " recommended" : "")}>
+          <div key={f.city.id} className="city-forecast recommended">
             <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
             <ol className='daily-forecast-list'>
               {f.results.map(df => {
