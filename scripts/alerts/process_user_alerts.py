@@ -89,6 +89,7 @@ def build_html_email(today, cities, alert):
     },
   }
   r = requests.post('%s/api/emails/alertHTML' % base_url, json=payload)
+  r.raise_for_status()
   return r.text.encode('utf-8')
 
 
@@ -132,20 +133,32 @@ def send_alert(today, cities, alert):
 def process_alert(today, cities, alert):
   with conn:
     with conn.cursor() as cur:
-      if get(alert, 'did_change'):
-        print 'sending alert to: %s' % get(alert, 'user_email')
-        send_alert(today, cities, alert)
-      else:
-        print 'not sending alert email to: %s' % get(alert, 'user_email')
-      cur.execute('''
-        INSERT INTO user_alert_instance(user_alert_id, date, attempts, completed, sent_alert)
-        VALUES(%s, %s, 1, TRUE, %s)
-        ON CONFLICT(user_alert_id, date)
-        DO UPDATE SET
-          attempts = user_alert_instance.attempts + 1,
-          completed = TRUE,
-          sent_alert = %s
-      ''', (get(alert, 'user_alert_id'), today, get(alert, 'did_change'), get(alert, 'did_change')))
+      try:
+        if get(alert, 'did_change'):
+          print 'sending alert to: %s' % get(alert, 'user_email')
+          send_alert(today, cities, alert)
+        else:
+          print 'not sending alert email to: %s' % get(alert, 'user_email')
+        cur.execute('''
+          INSERT INTO user_alert_instance(user_alert_id, date, attempts, completed, sent_alert)
+          VALUES(%s, %s, 1, TRUE, %s)
+          ON CONFLICT(user_alert_id, date)
+          DO UPDATE SET
+            attempts = user_alert_instance.attempts + 1,
+            completed = TRUE,
+            sent_alert = %s
+        ''', (get(alert, 'user_alert_id'), today, get(alert, 'did_change'), get(alert, 'did_change')))
+      except Exception as e:
+        print 'FAILED TO SEND to: %s, %s' % (get(alert, 'user_email'), e)
+        cur.execute('''
+          INSERT INTO user_alert_instance(user_alert_id, date, attempts, completed, sent_alert)
+          VALUES(%s, %s, 1, FALSE, FALSE)
+          ON CONFLICT(user_alert_id, date)
+          DO UPDATE SET
+            attempts = user_alert_instance.attempts + 1,
+            completed = FALSE,
+            sent_alert = FALSE
+        ''', (get(alert, 'user_alert_id'), today))
 
 
 def get_all_cities():

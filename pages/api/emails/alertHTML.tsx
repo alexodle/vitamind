@@ -145,6 +145,7 @@ interface GenerateEmailRequest {
 async function generateHTMLEmailAlert(req: NextApiRequest, res: NextApiResponse) {
   // localhost connections only
   if (LOCAL_IPS.indexOf(req.connection.remoteAddress as string) === -1) {
+    console.error(`ERROR: tried to generate html email from non-local address: ${req.connection.remoteAddress}`)
     throw new NotFoundError(`Remote address not local: ${req.connection.remoteAddress}`)
   }
 
