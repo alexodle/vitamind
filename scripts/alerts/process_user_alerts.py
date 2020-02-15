@@ -88,7 +88,7 @@ def build_html_email(today, cities, alert):
       'did_change': True,
     },
   }
-  r = requests.post('%s/api/emails/alertHTML' % base_url, json=payload)
+  r = requests.post('http://localhost:3000/api/emails/alertHTML', json=payload)
   r.raise_for_status()
   return r.text.encode('utf-8')
 
