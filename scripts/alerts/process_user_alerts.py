@@ -77,7 +77,7 @@ def build_html_email(today, cities, alert):
     'userAlert': {
       'id': get(alert, 'user_alert_id'),
       'user': { 'id': get(alert, 'user_id'), 'email': get(alert, 'user_email'), 'user_uuid': get(alert, 'user_uuid') },
-      'city': { 'id': get(alert, 'city_id'), 'name': get(alert, 'city_id') },
+      'city': { 'id': get(alert, 'city_id'), 'name': get(alert, 'city_name') },
       'max_drive_minutes': get(alert, 'max_drive_minutes'),
       'weath_type': get(alert, 'weath_type'),
       'active': True,
