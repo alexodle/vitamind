@@ -11,12 +11,11 @@ import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEma
 
 export interface WeatherIconProps {
   df: ProcessedDailyForecast
-  fullURL?: boolean
 }
-export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df, fullURL }) => {
+export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df }) => {
   const [img, imgSamll, alt] = getWeatherImg(df)
-  const url = `${fullURL ? process.env.BASE_URL : ''}/imgs/${img}`
-  const urlSmall = `${fullURL ? process.env.BASE_URL : ''}/imgs/${imgSamll}`
+  const url = `${process.env.ASSET_URL}/imgs/${img}`
+  const urlSmall = `${process.env.ASSET_URL}/imgs/${imgSamll}`
   return (<>
     <img alt={alt} src={url} className='icon reg'
       style={{
@@ -129,13 +128,12 @@ export const DailyForecastListItem: FunctionComponent<DailyForecastListProps> = 
 export interface DailyForecastBlockProps {
   df: ProcessedDailyForecast
   weathType: WeathType
-  fullURL?: boolean
 }
-export const DailyForecastBlock: FunctionComponent<DailyForecastBlockProps> = ({ df, weathType, fullURL }) => (
+export const DailyForecastBlock: FunctionComponent<DailyForecastBlockProps> = ({ df, weathType }) => (
   <DailyForecastListItem key={(df.date as Date).getDate()}>
     <DailyForecastContainer>
       <DailyForecastHeader df={df} weathType={weathType} />
-      <WeatherIcon df={df} fullURL={fullURL} /><br />
+      <WeatherIcon df={df} /><br />
       {friendlyTemp(df.maxtemp)}
     </DailyForecastContainer>
   </DailyForecastListItem>
