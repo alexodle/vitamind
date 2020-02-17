@@ -5,7 +5,7 @@ import { parseCookies, setCookie } from 'nookies'
 import { Fragment, FunctionComponent, SyntheticEvent, useState } from 'react'
 import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
-import { CSS_MEDIA_PHONE, DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES, NOT_CSS_MEDIA_PHONE } from '../src/constants'
+import { CSS_MEDIA_PHONE, DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES } from '../src/constants'
 import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
 import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEmail } from '../src/util'
 
@@ -14,22 +14,27 @@ export interface WeatherIconProps {
   fullURL?: boolean
 }
 export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df, fullURL }) => {
-  const [img, imgSamll, _alt] = getWeatherImg(df)
+  const [img, imgSamll, alt] = getWeatherImg(df)
   const url = `${fullURL ? process.env.BASE_URL : ''}/imgs/${img}`
   const urlSmall = `${fullURL ? process.env.BASE_URL : ''}/imgs/${imgSamll}`
   return (<>
-    <span className='icon' style={{
-      display: 'inline-block',
-      width: '64px',
-      height: '64px',
-      backgroundImage: `url("${url}")`,
-    }} />
+    <img alt={alt} src={url} className='icon reg'
+      style={{
+        display: 'inline-block',
+        width: '64px',
+        height: '64px',
+      }}
+    />
+    <img alt={alt} src={urlSmall} className='icon small' style={{ display: 'none' }} />
     <style jsx>{`
       @media ${CSS_MEDIA_PHONE} {
-        .icon {
-          width: 30px !important;
-          height: 30px !important;
-          background-image: url("${urlSmall}") !important;
+        .reg {
+          display: none !important;
+        }
+        .small {
+          display: inline-block !important;
+          width: 30px;
+          height: 30px;
         }
       }`}
     </style>
