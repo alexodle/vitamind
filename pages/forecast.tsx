@@ -7,7 +7,7 @@ import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
 import { CSS_MEDIA_PHONE, DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES, NOT_CSS_MEDIA_PHONE } from '../src/constants'
 import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
-import { friendlyDay, friendlyDayShort, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEmail } from '../src/util'
+import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEmail } from '../src/util'
 
 export interface WeatherIconProps {
   df: ProcessedDailyForecast
@@ -18,19 +18,18 @@ export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df, fullURL }
   const url = `${fullURL ? process.env.BASE_URL : ''}/imgs/${img}`
   const urlSmall = `${fullURL ? process.env.BASE_URL : ''}/imgs/${imgSamll}`
   return (<>
-    <span className='icon' />
+    <span className='icon' style={{
+      display: 'inline-block',
+      width: '64px',
+      height: '64px',
+      backgroundImage: `url("${url}")`,
+    }} />
     <style jsx>{`
-      .icon {
-        display: inline-block;
-        width: 64px;
-        height: 64px;
-        background-image: url("${url}");
-      }
       @media ${CSS_MEDIA_PHONE} {
         .icon {
-          width: 30px;
-          height: 30px;
-          background-image: url("${urlSmall}");
+          width: 30px !important;
+          height: 30px !important;
+          background-image: url("${urlSmall}") !important;
         }
       }`}
     </style>
@@ -40,22 +39,12 @@ export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df, fullURL }
 export interface DailyForecastContainerProps { }
 export const DailyForecastContainer: FunctionComponent<DailyForecastContainerProps> = ({ children }) => (
   <div className='container' style={{
+    padding: '10px',
     border: 'gray 1px solid',
     borderRadius: '10px',
     textAlign: 'center',
-    overflow: 'hidden',
   }}>
     {children}
-    <style jsx>{`
-      .container {
-        padding: 10px;
-        border: gray 1px solid;
-        border-radius: 10px;
-        text-align: center;
-      }
-      @media ${CSS_MEDIA_PHONE} {
-      }`}
-    </style>
   </div >
 )
 
@@ -68,33 +57,27 @@ export const DailyForecastHeader: FunctionComponent<DailyForecastHeaderProps> = 
   const dayNum = (df.date as Date).getDay()
   const [day, dayShort] = friendlyDay(dayNum)
   return (
-    <h4 className={`header ${isGoodDay ? 'is-good-day' : ''}`}>
+    <h4 style={{
+      display: 'block',
+      paddingTop: 0,
+      marginTop: 0,
+      marginBottom: '10px',
+      textAlign: 'center',
+      width: '6em',
+      backgroundColor: isGoodDay ? '#98FB98' : undefined,
+    }}>
       <span className='full'>{day}</span>
-      <span className='short'>{dayShort}</span>
+      <span className='short' style={{ display: 'none' }}>{dayShort}</span>
       <style jsx>{`
-        .header {
-          display: block;
-          padding-top: 0;
-          margin-top: 0;
-          margin-bottom: 10px;
-          text-align: center;
-          width: 6em;
-        }
-        .header.is-good-day {
-          background-color: #98FB98
-        }
-        .short {
-          display: none;
-        }
         @media ${CSS_MEDIA_PHONE} {
           .full {
-            display: none;
+            display: none !important;
           }
           .short {
-            display: inline-block;
+            display: inline-block !important;
           }
-          .header {
-            width: 3em;
+          h4 {
+            width: 3em !important;
           }
         }`}
       </style>
@@ -104,12 +87,9 @@ export const DailyForecastHeader: FunctionComponent<DailyForecastHeaderProps> = 
 
 export interface DailyForecastListProps { }
 export const DailyForecastList: FunctionComponent<DailyForecastListProps> = ({ children }) => (
-  <ol style={{}}>
+  <ol style={{ paddingInlineStart: 0 }}>
     {children}
     <style jsx>{`
-      ol {
-        padding-inline-start: 0;
-      }
       @media ${CSS_MEDIA_PHONE} {
         ol {
           padding-inline-start: 0;
@@ -129,15 +109,12 @@ export const DailyForecastList: FunctionComponent<DailyForecastListProps> = ({ c
 
 export interface DailyForecastListProps { }
 export const DailyForecastListItem: FunctionComponent<DailyForecastListProps> = ({ children }) => (
-  <li>
+  <li style={{ display: 'inline-block', paddingRight: '20px' }}>
     {children}
     <style jsx>{`
-      li {
-        display: inline-block;
-      }
-      @media ${NOT_CSS_MEDIA_PHONE} {
+      @media ${CSS_MEDIA_PHONE} {
         li {
-          padding-right: 20px;
+          padding-right: 0 !important;
         }
       }
     `}</style>

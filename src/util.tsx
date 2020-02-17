@@ -28,9 +28,7 @@ export const friendlyHoursText = (driveTimeMinutes: number): string => {
   return `${driveTimeHours} hours`
 }
 
-export const friendlyTemp = (temp: number): string => {
-  return `${Math.round(temp)}\u00B0F`
-}
+export const friendlyTemp = (temp: number): JSX.Element => <span>{Math.round(temp)}&deg;F</span>
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 export const friendlyDayLong = (day: number): string => DAYS[day]
