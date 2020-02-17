@@ -5,11 +5,161 @@ import { parseCookies, setCookie } from 'nookies'
 import { Fragment, FunctionComponent, SyntheticEvent, useState } from 'react'
 import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
-import { DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES } from '../src/constants'
+import { CSS_MEDIA_PHONE, DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES, NOT_CSS_MEDIA_PHONE } from '../src/constants'
 import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
-import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEmail } from '../src/util'
+import { friendlyDay, friendlyDayShort, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEmail } from '../src/util'
 
-export interface ForecastProps extends WeathResult {
+export interface WeatherIconProps {
+  df: ProcessedDailyForecast
+  fullURL?: boolean
+}
+export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df, fullURL }) => {
+  const [img, imgSamll, _alt] = getWeatherImg(df)
+  const url = `${fullURL ? process.env.BASE_URL : ''}/imgs/${img}`
+  const urlSmall = `${fullURL ? process.env.BASE_URL : ''}/imgs/${imgSamll}`
+  return (<>
+    <span className='icon' />
+    <style jsx>{`
+      .icon {
+        display: inline-block;
+        width: 64px;
+        height: 64px;
+        background-image: url("${url}");
+      }
+      @media ${CSS_MEDIA_PHONE} {
+        .icon {
+          width: 30px;
+          height: 30px;
+          background-image: url("${urlSmall}");
+        }
+      }`}
+    </style>
+  </>)
+}
+
+export interface DailyForecastContainerProps { }
+export const DailyForecastContainer: FunctionComponent<DailyForecastContainerProps> = ({ children }) => (
+  <div className='container' style={{
+    border: 'gray 1px solid',
+    borderRadius: '10px',
+    textAlign: 'center',
+    overflow: 'hidden',
+  }}>
+    {children}
+    <style jsx>{`
+      .container {
+        padding: 10px;
+        border: gray 1px solid;
+        border-radius: 10px;
+        text-align: center;
+      }
+      @media ${CSS_MEDIA_PHONE} {
+      }`}
+    </style>
+  </div >
+)
+
+export interface DailyForecastHeaderProps {
+  df: ProcessedDailyForecast
+  weathType: WeathType
+}
+export const DailyForecastHeader: FunctionComponent<DailyForecastHeaderProps> = ({ df, weathType }) => {
+  const isGoodDay = weathType === 'sunny' ? df.isGoodDay : df.isWarmDay
+  const dayNum = (df.date as Date).getDay()
+  const [day, dayShort] = friendlyDay(dayNum)
+  return (
+    <h4 className={`header ${isGoodDay ? 'is-good-day' : ''}`}>
+      <span className='full'>{day}</span>
+      <span className='short'>{dayShort}</span>
+      <style jsx>{`
+        .header {
+          display: block;
+          padding-top: 0;
+          margin-top: 0;
+          margin-bottom: 10px;
+          text-align: center;
+          width: 6em;
+        }
+        .header.is-good-day {
+          background-color: #98FB98
+        }
+        .short {
+          display: none;
+        }
+        @media ${CSS_MEDIA_PHONE} {
+          .full {
+            display: none;
+          }
+          .short {
+            display: inline-block;
+          }
+          .header {
+            width: 3em;
+          }
+        }`}
+      </style>
+    </h4>
+  )
+}
+
+export interface DailyForecastListProps { }
+export const DailyForecastList: FunctionComponent<DailyForecastListProps> = ({ children }) => (
+  <ol style={{}}>
+    {children}
+    <style jsx>{`
+      ol {
+        padding-inline-start: 0;
+      }
+      @media ${CSS_MEDIA_PHONE} {
+        ol {
+          padding-inline-start: 0;
+          display: flex;
+          justify-content: space-between;
+        }
+        ol::before {
+          content: "";
+        }
+        ol::after {
+          content: "";
+        }
+      }
+    `}</style>
+  </ol>
+)
+
+export interface DailyForecastListProps { }
+export const DailyForecastListItem: FunctionComponent<DailyForecastListProps> = ({ children }) => (
+  <li>
+    {children}
+    <style jsx>{`
+      li {
+        display: inline-block;
+      }
+      @media ${NOT_CSS_MEDIA_PHONE} {
+        li {
+          padding-right: 20px;
+        }
+      }
+    `}</style>
+  </li>
+)
+
+export interface DailyForecastBlockProps {
+  df: ProcessedDailyForecast
+  weathType: WeathType
+  fullURL?: boolean
+}
+export const DailyForecastBlock: FunctionComponent<DailyForecastBlockProps> = ({ df, weathType, fullURL }) => (
+  <DailyForecastListItem key={(df.date as Date).getDate()}>
+    <DailyForecastContainer>
+      <DailyForecastHeader df={df} weathType={weathType} />
+      <WeatherIcon df={df} fullURL={fullURL} /><br />
+      {friendlyTemp(df.maxtemp)}
+    </DailyForecastContainer>
+  </DailyForecastListItem>
+)
+
+interface ForecastProps extends WeathResult {
   defaultEmail: string
 }
 
@@ -25,52 +175,18 @@ function normalizeWeathResults(its: ProcessedForecast[]) {
   })
 }
 
-function renderForecastDay(df: ProcessedDailyForecast, weathType: WeathType): JSX.Element {
-  const [img, alt] = getWeatherImg(df)
-  const isGoodDay = weathType === 'sunny' ? df.isGoodDay : df.isWarmDay
-  return (
-    <div className='daily-forecast-container'>
-      <h4 className={"daily-forecast" + (isGoodDay ? " good-day" : "")}>{friendlyDay((df.date as Date).getDay())}</h4>
-      <img className='weather-icon' src={`imgs/${img}`} alt={alt} /> {friendlyTemp(df.maxtemp)}
-      <style jsx>{`
-        h4 {
-          padding-top: 0px;
-          margin-top: 0px;
-        }
-        .daily-forecast-container {
-          border: gray 1px solid;
-          border-radius: 10px;
-          padding: 10px;
-        }
-        .weather-icon {
-          width: 64px;
-          height: 64px;
-        }
-        .daily-forecast {
-          text-align: center;
-        }
-        .daily-forecast.good-day {
-          background-color: #98FB98;
-        }
-      `}</style>
-    </div>
-  )
-}
-
 const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, weathType, sourceCityForecasts, forecasts }) => {
   return (
     <Fragment>
       <section>
         <h2>Stay home? ({city.name})</h2>
-        <ol className='daily-forecast-list'>
-          {sourceCityForecasts.map(df => {
-            return (
-              <li key={(df.date as Date).getDate()}>
-                {renderForecastDay(df, weathType)}
-              </li>
-            )
-          })}
-        </ol>
+        <DailyForecastList>
+          {sourceCityForecasts.map(df => <DailyForecastBlock
+            key={(df.date as Date).getDate()}
+            df={df}
+            weathType={weathType}
+          />)}
+        </DailyForecastList>
       </section>
       <section>
         <h2>Or get out?</h2>
@@ -83,15 +199,13 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
         {forecasts.map((f: ProcessedForecast) => (
           <div key={f.city.id} className="city-forecast recommended">
             <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
-            <ol className='daily-forecast-list'>
-              {f.results.map(df => {
-                return (
-                  <li key={(df.date as Date).getDate()}>
-                    {renderForecastDay(df, weathType)}
-                  </li>
-                )
-              })}
-            </ol>
+            <DailyForecastList>
+              {f.results.map(df => <DailyForecastBlock
+                key={(df.date as Date).getDate()}
+                df={df}
+                weathType={weathType}
+              />)}
+            </DailyForecastList>
           </div>
         ))}
       </section>
@@ -100,15 +214,7 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
           transform: translateY(-10px);
           margin-bottom: 20px;
         }
-        .daily-forecast-list {
-          padding-inline-start: 0;
-        }
-        .daily-forecast-list li {
-          display: inline-block;
-          margin-right: 20px;
-          margin-bottom: 20px;
-        }
-        `}</style>
+      `}</style>
     </Fragment >
   )
 }

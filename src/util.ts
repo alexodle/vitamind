@@ -7,15 +7,15 @@ export const isValidEmail = (email: string) => EMAIL_REGEX.test(email)
 
 export const isValidWeathType = (weathType: WeathType) => WEATH_TYPES.indexOf(weathType) !== -1
 
-export const getWeatherImg = (df: ProcessedDailyForecast): [string, string] => {
+export const getWeatherImg = (df: ProcessedDailyForecast): [string, string, string] => {
   if (df.rainpct >= 20) {
-    return ['rain_s_cloudy.png', 'Rainy']
+    return ['rain_s_cloudy.png', 'rain_s_cloudy_30_30.png', 'Rainy']
   } else if (df.cloudcover > 75) {
-    return ['cloudy.png', 'Cloudy']
+    return ['cloudy.png', 'cloudy_30_30.png', 'Cloudy']
   } else if (df.cloudcover > 25) {
-    return ['partly_cloudy.png', 'Partly cloudy']
+    return ['partly_cloudy.png', 'partly_cloudy_30_30.png', 'Partly cloudy']
   }
-  return ['sunny.png', 'Sunny']
+  return ['sunny.png', 'sunny_30_30.png', 'Sunny']
 }
 
 export const friendlyHoursText = (driveTimeMinutes: number): string => {
@@ -33,4 +33,9 @@ export const friendlyTemp = (temp: number): string => {
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-export const friendlyDay = (day: number): string => DAYS[day]
+export const friendlyDayLong = (day: number): string => DAYS[day]
+
+const SHORT_DAYS = ['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun']
+export const friendlyDayShort = (day: number): string => SHORT_DAYS[day]
+
+export const friendlyDay = (day: number): [string, string] => [friendlyDayLong(day), friendlyDayShort(day)]

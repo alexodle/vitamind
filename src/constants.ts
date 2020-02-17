@@ -15,3 +15,6 @@ export const DEFAULT_COOKIE_OPTIONS = {
   sameSite: 'strict',
   secure: process.env.NODE_ENV === 'production',
 }
+
+export const CSS_MEDIA_PHONE = 'only screen and (max-width: 812px)'
+export const NOT_CSS_MEDIA_PHONE = 'only screen and (min-width: 813px)'

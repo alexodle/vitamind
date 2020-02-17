@@ -8,6 +8,7 @@ import { InvalidRequestError, NotFoundError } from "../../../src/errors";
 import { createRequestHandler } from "../../../src/requestHandler";
 import { ProcessedForecast, UserAlertWithStatus, ProcessedDailyForecast, WeathType } from "../../../src/types";
 import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImg } from "../../../src/util";
+import { WeatherIcon, DailyForecastContainer, DailyForecastHeader } from '../../forecast';
 
 const LOCAL_IPS = [
   '::ffff:127.0.0.1',
@@ -22,35 +23,6 @@ interface EmailAlertProps {
 }
 
 const Section: FunctionComponent<{}> = ({ children }) => <section style={{ marginBottom: '40px' }}>{children}</section >
-
-const DailyForecastContainer: FunctionComponent<{}> = ({ children }) => (
-  <div style={{
-    border: 'gray 1px solid',
-    borderRadius: '10px',
-    padding: '10px',
-    width: '120px',
-    height: '123px',
-    overflow: 'hidden',
-  }}>{children}</div >
-)
-
-const DailyForecastHeader: FunctionComponent<{ df: ProcessedDailyForecast, weathType: WeathType }> = ({ df, weathType }) => {
-  const isGoodDay = weathType === 'sunny' ? df.isGoodDay : df.isWarmDay
-  return (
-    <h4 style={{
-      paddingTop: '0px',
-      marginTop: '0px',
-      textAlign: 'center',
-      backgroundColor: isGoodDay ? '#98FB98' : undefined,
-    }}
-    >{friendlyDay((df.date as Date).getDay())}</h4>
-  )
-}
-
-const WeatherIcon: FunctionComponent<{ df: ProcessedDailyForecast, fullURL?: boolean }> = ({ df, fullURL }) => {
-  const [img, alt] = getWeatherImg(df)
-  return <img style={{ width: '64px', height: '64px', display: 'inline-block' }} src={`${fullURL ? process.env.BASE_URL : ''}/imgs/${img}`} alt={alt} />
-}
 
 const EmailAlertHTML: FunctionComponent<EmailAlertProps> = ({ userAlert, recommendations }) => {
   const { user, cities_gained, cities_lost, weath_type, max_drive_minutes, city } = userAlert
