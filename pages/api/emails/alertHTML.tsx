@@ -78,7 +78,7 @@ const EmailAlertHTML: FunctionComponent<EmailAlertProps> = ({ userAlert, recomme
                 <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
                 <DailyForecastList>
                   {f.results.map(df =>
-                    <DailyForecastBlock key={(df.date as Date).getDate()} df={df} weathType={weath_type} fullURL />
+                    <DailyForecastBlock key={(df.date as Date).getDate()} df={df} weathType={weath_type} />
                   )}
                 </DailyForecastList>
               </div>
