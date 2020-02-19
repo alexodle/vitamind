@@ -7,24 +7,22 @@ import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
 import { CSS_MEDIA_PHONE, DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES } from '../src/constants'
 import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
-import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImg, isValidEmail } from '../src/util'
+import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImgs, isValidEmail } from '../src/util'
 
 export interface WeatherIconProps {
   df: ProcessedDailyForecast
 }
 export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df }) => {
-  const [img, imgSamll, alt] = getWeatherImg(df)
-  const url = `${process.env.ASSET_URL}/imgs/${img}`
-  const urlSmall = `${process.env.ASSET_URL}/imgs/${imgSamll}`
+  const [img, imgSmall, alt] = getWeatherImgs(df)
   return (<>
-    <img alt={alt} src={url} className='icon reg'
+    <img alt={alt} src={img} className='icon reg'
       style={{
         display: 'inline-block',
         width: '64px',
         height: '64px',
       }}
     />
-    <img alt={alt} src={urlSmall} className='icon small' style={{ display: 'none' }} />
+    <img alt={alt} src={imgSmall} className='icon small' style={{ display: 'none' }} />
     <style jsx>{`
       @media ${CSS_MEDIA_PHONE} {
         .reg {
@@ -96,7 +94,6 @@ export const DailyForecastList: FunctionComponent<DailyForecastListProps> = ({ c
     <style jsx>{`
       @media ${CSS_MEDIA_PHONE} {
         ol {
-          padding-inline-start: 0;
           display: flex;
           justify-content: space-between;
         }

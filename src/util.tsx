@@ -3,11 +3,21 @@ import { WEATH_TYPES } from "./constants"
 
 const EMAIL_REGEX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 
+const PST_OFFSET_MILLIS = -8 * 60 * 60 * 1000
+
+// returns Date in PST
+export const getToday = (): Date => {
+  const d = new Date()
+  const offset = d.getTimezoneOffset()
+  const newMillis = d.getTime() - offset + PST_OFFSET_MILLIS
+  return new Date(newMillis)
+}
+
 export const isValidEmail = (email: string) => EMAIL_REGEX.test(email)
 
 export const isValidWeathType = (weathType: WeathType) => WEATH_TYPES.indexOf(weathType) !== -1
 
-export const getWeatherImg = (df: ProcessedDailyForecast): [string, string, string] => {
+const getWeatherImgNames = (df: ProcessedDailyForecast): [string, string, string] => {
   if (df.rainpct >= 20) {
     return ['rain_s_cloudy.png', 'rain_s_cloudy_30_30.png', 'Rainy']
   } else if (df.cloudcover > 75) {
@@ -16,6 +26,10 @@ export const getWeatherImg = (df: ProcessedDailyForecast): [string, string, stri
     return ['partly_cloudy.png', 'partly_cloudy_30_30.png', 'Partly cloudy']
   }
   return ['sunny.png', 'sunny_30_30.png', 'Sunny']
+}
+export const getWeatherImgs = (df: ProcessedDailyForecast): [string, string, string] => {
+  const [img, imgSmall, alt] = getWeatherImgNames(df)
+  return [`${process.env.ASSET_URL}/imgs/${img}`, `${process.env.ASSET_URL}/imgs/${imgSmall}`, alt]
 }
 
 export const friendlyHoursText = (driveTimeMinutes: number): string => {

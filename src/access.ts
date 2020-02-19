@@ -6,7 +6,7 @@ import { sendConfirmationEmail } from './emailConfAccess'
 import { InvalidRequestError, NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
 import { City, ProcessedDailyForecast, ProcessedForecast, User, UserAlert, WeathType, UserAlertWithStatus } from './types'
-import { isValidWeathType } from './util'
+import { isValidWeathType, getToday } from './util'
 
 const NDAYS = 6
 
@@ -78,7 +78,7 @@ export async function getCity(id: number): Promise<City> {
 }
 
 export async function getDailyForecastsForCities(cityIDs: number[], dateForecasted: Date): Promise<{ [cityID: string]: ProcessedDailyForecast[] }> {
-  const today = new Date()
+  const today = getToday()
   const [fc_date_start, fc_date_end] = [today, addDays(dateForecasted, NDAYS)]
 
   const result = await pool.query(`
