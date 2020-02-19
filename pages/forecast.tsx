@@ -47,6 +47,14 @@ export const DailyForecastContainer: FunctionComponent<DailyForecastContainerPro
     textAlign: 'center',
   }}>
     {children}
+    <style jsx>{`
+      @media ${CSS_MEDIA_PHONE} {
+        .container {
+          padding-left: 5px !important;
+          padding-right: 5px !important;
+        }
+      }`}
+    </style>
   </div >
 )
 
