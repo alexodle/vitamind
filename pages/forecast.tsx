@@ -237,27 +237,9 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
   )
 }
 
-const renderSadFace = () => (
-  <div className='sad-face-wrapper'>
-    <p>No results. Try <Link href="/"><a>changing your search</a></Link>, or check back tomorrow.</p>
-    <p className='sad-face'>:(</p>
-    <style jsx>{`
-      .sad-face-wrapper {
-        text-align: center;
-        margin-top: 100px;
-        margin-bottom: 100px;
-      }
-      .sad-face {
-        font-size: 15em;
-        margin: 0;
-        padding: 0;
-      }
-    `}</style>
-  </div>
-)
-
 const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
-  const [isCreatingAlert, setIsCreatingAlert] = useState(false)
+  const [isCreatingAlertTop, setIsCreatingAlertTop] = useState(false)
+  const [isCreatingAlertSadFace, setIsCreatingAlertSadFace] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<null | 'error' | 'success' | 'verifying'>(null)
   const [alertEmail, setAlertEmail] = useState(props.defaultEmail)
@@ -295,7 +277,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
     return (
       <form className='alert-form'>
         <label htmlFor='email'>Enter your email:{' '}
-          <input type='email' name='email' id='email' value={alertEmail} onChange={e => setAlertEmail(e.target.value)} disabled={isSubmitting} />
+          <input autoFocus type='email' name='email' id='email' value={alertEmail} onChange={e => setAlertEmail(e.target.value)} disabled={isSubmitting} />
         </label>
         {' '}<button
           type='submit'
@@ -335,6 +317,27 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
     )
   }
 
+  const renderSadFace = () => (
+    <div className='sad-face-wrapper'>
+      {isCreatingAlertSadFace ? renderAlertForm() : (
+        <p>No results. Try <Link href="/"><a>changing your search</a></Link>, or <a href='#' onClick={ev => { ev.preventDefault(); setIsCreatingAlertSadFace(true); }}> get alerted when things change</a>.</p>
+      )}
+      <p className='sad-face'>:(</p>
+      <style jsx>{`
+        .sad-face-wrapper {
+          text-align: center;
+          margin-top: 100px;
+          margin-bottom: 100px;
+        }
+        .sad-face {
+          font-size: 15em;
+          margin: 0;
+          padding: 0;
+        }
+      `}</style>
+    </div>
+  )
+
   return (
     <Layout>
       {renderAlertSubmitResult()}
@@ -342,8 +345,8 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
         <Link href="/"><a>Change your search</a></Link>
         <br /><br />
         <div>
-          {isCreatingAlert ? renderAlertForm() : (
-            <a href="#" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlert(true); }}>Create alert for this</a>
+          {isCreatingAlertTop ? renderAlertForm() : (
+            <a href="#" onClick={(ev) => { ev.preventDefault(); setIsCreatingAlertTop(true); }}>Create alert for this</a>
           )}
         </div>
       </section>

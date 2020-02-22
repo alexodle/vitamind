@@ -105,7 +105,10 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
               <option value={'warm'}>Warm weather</option>
             </select>
           </label>
-          <label htmlFor='wkndsOnly'><input id='wkndsOnly' name='wkndsOnly' type='checkbox' checked={wkndsOnly} onChange={ev => setWkndsOnly(!!ev.target.checked)} /> Weekends only?</label>
+          <label htmlFor='wkndsOnly'>
+            <input id='wkndsOnly' name='wkndsOnly' type='checkbox' checked={wkndsOnly} onChange={ev => setWkndsOnly(!!ev.target.checked)} disabled={isQuerying} />
+            {' '}Weekends only?
+          </label>
           <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
         </form>
       </section>
