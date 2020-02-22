@@ -3,11 +3,27 @@ import { NextPage } from 'next'
 import Link from 'next/link'
 import { parseCookies, setCookie } from 'nookies'
 import { Fragment, FunctionComponent, SyntheticEvent, useState } from 'react'
+import { createOrUpdateUserAlert } from '../src/clientAPI'
 import { Alert } from '../src/components/Alert'
 import { Layout } from '../src/components/Layout'
 import { CSS_MEDIA_PHONE, DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES } from '../src/constants'
-import { PostUserAlertResult, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
-import { friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImgs, isValidEmail } from '../src/util'
+import { City, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
+import { aOrAn, capitalizeFirst, friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImgs, isValidEmail, isWeekend } from '../src/util'
+
+export interface SearchCriteriaProps {
+  capitalize?: boolean
+  city: Omit<City, 'selectable'>
+  maxDriveMinutes: number
+  weathType: WeathType
+  wkndsOnly: boolean
+}
+export const SearchCriteria: FunctionComponent<SearchCriteriaProps> = ({ capitalize, city, maxDriveMinutes, weathType, wkndsOnly }) => {
+  const driveHours = maxDriveMinutes / 60
+  if (!wkndsOnly) {
+    return <><b>{capitalize ? capitalizeFirst(weathType) : weathType} weather</b> within {aOrAn(driveHours)} <b>{driveHours} hour</b> drive of <b>{city.name}</b></>
+  }
+  return <><b>{capitalize ? capitalizeFirst(weathType) : weathType} weather</b> <b>this weekend</b> within {aOrAn(driveHours)} <b>{driveHours} hour</b> drive of <b>{city.name}</b></>
+}
 
 export interface WeatherIconProps {
   df: ProcessedDailyForecast
@@ -38,32 +54,38 @@ export const WeatherIcon: FunctionComponent<WeatherIconProps> = ({ df }) => {
   </>)
 }
 
-export interface DailyForecastContainerProps { }
-export const DailyForecastContainer: FunctionComponent<DailyForecastContainerProps> = ({ children }) => (
-  <div className='container' style={{
-    padding: '10px',
-    border: 'gray 1px solid',
-    borderRadius: '10px',
-    textAlign: 'center',
-  }}>
-    {children}
-    <style jsx>{`
+export interface DailyForecastContainerProps {
+  grayedOut?: Boolean
+}
+export const DailyForecastContainer: FunctionComponent<DailyForecastContainerProps> = ({ children, grayedOut }) => {
+  return (
+    <div className='container' style={{
+      padding: '10px',
+      border: 'gray 1px solid',
+      borderRadius: '10px',
+      textAlign: 'center',
+
+      color: grayedOut ? '#9e9e9e' : undefined,
+      backgroundColor: grayedOut ? '#eeeeee' : undefined,
+    }}>
+      {children}
+      <style jsx>{`
       @media ${CSS_MEDIA_PHONE} {
         .container {
           padding-left: 5px !important;
           padding-right: 5px !important;
         }
       }`}
-    </style>
-  </div >
-)
+      </style>
+    </div>
+  )
+}
 
 export interface DailyForecastHeaderProps {
   df: ProcessedDailyForecast
-  weathType: WeathType
+  recommended?: boolean
 }
-export const DailyForecastHeader: FunctionComponent<DailyForecastHeaderProps> = ({ df, weathType }) => {
-  const isGoodDay = weathType === 'sunny' ? df.isGoodDay : df.isWarmDay
+export const DailyForecastHeader: FunctionComponent<DailyForecastHeaderProps> = ({ df, recommended }) => {
   const dayNum = (df.date as Date).getDay()
   const [day, dayShort] = friendlyDay(dayNum)
   return (
@@ -74,7 +96,8 @@ export const DailyForecastHeader: FunctionComponent<DailyForecastHeaderProps> = 
       marginBottom: '10px',
       textAlign: 'center',
       width: '6em',
-      backgroundColor: isGoodDay ? '#98FB98' : undefined,
+      backgroundColor: recommended ? '#98FB98' : undefined,
+      borderRadius: recommended ? '5px' : undefined,
     }}>
       <span className='full'>{day}</span>
       <span className='short' style={{ display: 'none' }}>{dayShort}</span>
@@ -116,9 +139,11 @@ export const DailyForecastList: FunctionComponent<DailyForecastListProps> = ({ c
   </ol>
 )
 
-export interface DailyForecastListProps { }
-export const DailyForecastListItem: FunctionComponent<DailyForecastListProps> = ({ children }) => (
-  <li style={{ display: 'inline-block', paddingRight: '20px' }}>
+export interface DailyForecastListProps {
+  isLast?: boolean
+}
+export const DailyForecastListItem: FunctionComponent<DailyForecastListProps> = ({ children, isLast }) => (
+  <li style={{ display: 'inline-block', paddingRight: !isLast ? '15px' : 0 }}>
     {children}
     <style jsx>{`
       @media ${CSS_MEDIA_PHONE} {
@@ -133,22 +158,25 @@ export const DailyForecastListItem: FunctionComponent<DailyForecastListProps> = 
 export interface DailyForecastBlockProps {
   df: ProcessedDailyForecast
   weathType: WeathType
+  wkndsOnly: boolean
+  isLast?: boolean
 }
-export const DailyForecastBlock: FunctionComponent<DailyForecastBlockProps> = ({ df, weathType }) => (
-  <DailyForecastListItem key={(df.date as Date).getDate()}>
-    <DailyForecastContainer>
-      <DailyForecastHeader df={df} weathType={weathType} />
-      <WeatherIcon df={df} /><br />
-      {friendlyTemp(df.maxtemp)}
-    </DailyForecastContainer>
-  </DailyForecastListItem>
-)
+export const DailyForecastBlock: FunctionComponent<DailyForecastBlockProps> = ({ df, weathType, wkndsOnly, isLast }) => {
+  const isRecommended = weathType === 'sunny' ? df.isGoodDay : df.isWarmDay
+  return (
+    <DailyForecastListItem key={(df.date as Date).getDate()} isLast={isLast}>
+      <DailyForecastContainer grayedOut={wkndsOnly && !isWeekend(df.date as Date)}>
+        <DailyForecastHeader df={df} recommended={isRecommended} />
+        <WeatherIcon df={df} /> <br />
+        {friendlyTemp(df.maxtemp)}
+      </DailyForecastContainer>
+    </DailyForecastListItem>
+  )
+}
 
 interface ForecastProps extends WeathResult {
   defaultEmail: string
 }
-
-const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'sunny weather' : 'warm weather'
 
 function normalizeDailyForecast(df: ProcessedDailyForecast) {
   df.date = new Date(df.date)
@@ -160,68 +188,71 @@ function normalizeWeathResults(its: ProcessedForecast[]) {
   })
 }
 
-const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, weathType, sourceCityForecasts, forecasts }) => {
+const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, city, weathType, wkndsOnly, sourceCityForecasts, forecasts }) => {
   return (
     <Fragment>
       <section>
-        <h2>Stay home? ({city.name})</h2>
-        <DailyForecastList>
-          {sourceCityForecasts.map(df => <DailyForecastBlock
-            key={(df.date as Date).getDate()}
-            df={df}
-            weathType={weathType}
-          />)}
-        </DailyForecastList>
-      </section>
-      <section>
-        <h2>Or get out?</h2>
-        <p className='sub-header'>
-          We found <b>{forecasts.length} {forecasts.length === 1 ? 'destination' : 'destinations'}</b>{' '}
-          with <b>{friendlyWeathType(weathType)}</b>{' '}
-          within a <b>{driveHoursRequested} hour</b>{' '}
-          drive of <b>{city.name}</b>
-        </p>
+        <h2 className='section-header'>
+          <b>{forecasts.length} {forecasts.length === 1 ? 'destination' : 'destinations'}</b>{' '}
+          with <SearchCriteria city={city} weathType={weathType} maxDriveMinutes={driveHoursRequested * 60} wkndsOnly={wkndsOnly} />
+        </h2>
         {forecasts.map((f: ProcessedForecast) => (
           <div key={f.city.id} className="city-forecast recommended">
             <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
             <DailyForecastList>
-              {f.results.map(df => <DailyForecastBlock
+              {f.results.map((df, i) => <DailyForecastBlock
                 key={(df.date as Date).getDate()}
                 df={df}
                 weathType={weathType}
+                wkndsOnly={wkndsOnly}
+                isLast={i === f.results.length - 1}
               />)}
             </DailyForecastList>
           </div>
         ))}
       </section>
+      <section>
+        <h2 className='section-header'>
+          Or, stay in <b>{city.name}</b>
+        </h2>
+        <DailyForecastList>
+          {sourceCityForecasts.map(df => <DailyForecastBlock
+            key={(df.date as Date).getDate()}
+            df={df}
+            weathType={weathType}
+            wkndsOnly={wkndsOnly}
+          />)}
+        </DailyForecastList>
+      </section>
       <style jsx>{`
-        .sub-header {
-          transform: translateY(-10px);
-          margin-bottom: 20px;
+        .section-header {
+          font-weight: normal;
+          font-size: larger;
+          border-bottom: 1px solid gray;
+          padding-bottom: 15px;
+          margin-bottom: 30px;
         }
       `}</style>
-    </Fragment >
+    </Fragment>
   )
 }
 
 const renderSadFace = () => (
   <div className='sad-face-wrapper'>
-    <span className='sad-face'>:(</span>
+    <p>No results. Try <Link href="/"><a>changing your search</a></Link>, or check back tomorrow.</p>
+    <p className='sad-face'>:(</p>
     <style jsx>{`
-    .sad-face-wrapper {
-      position: fixed;
-      text-align: center;
-      top: 50%;
-      left: 50%;
-      font-size: 2em;
-      transform: translate(-50%, -50%);
-    }
-    .sad-face {
-      display: block;
-      font-size: 3em;
-      padding: 20px;
-    }
-  `}</style>
+      .sad-face-wrapper {
+        text-align: center;
+        margin-top: 100px;
+        margin-bottom: 100px;
+      }
+      .sad-face {
+        font-size: 15em;
+        margin: 0;
+        padding: 0;
+      }
+    `}</style>
   </div>
 )
 
@@ -241,23 +272,14 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
     setIsSubmitting(true)
     setCookie(null, 'email', alertEmail, DEFAULT_COOKIE_OPTIONS)
 
-    const data = {
-      cityID: props.city.id,
-      driveHours: props.driveHoursRequested,
-      weathType: props.weathType,
-      email: alertEmail,
-    }
     try {
-      const res = await fetch(process.env.BASE_URL + `/api/user_alert`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      if (!res.ok) {
-        setSubmitResult('error')
-        return
-      }
-      const result: PostUserAlertResult = await res.json()
+      const result = await createOrUpdateUserAlert(
+        props.city.id,
+        props.driveHoursRequested,
+        props.weathType,
+        props.wkndsOnly,
+        alertEmail
+      )
       setSubmitResult(result.user.email_confirmed ? 'success' : 'verifying')
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
@@ -328,8 +350,8 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
       {props.forecasts.length ? <ForecastsView {...props} /> : (
         <Fragment>
           <Alert status='info'>
-            No {friendlyWeathType(props.weathType)} was found within a {props.driveHoursRequested} hour drive of {props.city.name}.
-            Showing results for {MAX_DRIVE_MINUTES / 60} hours.
+            No results found for <SearchCriteria city={props.city} maxDriveMinutes={props.driveHoursRequested * 60} weathType={props.weathType} wkndsOnly={props.wkndsOnly} />.<br />
+            <b>Showing results for {MAX_DRIVE_MINUTES / 60} hours.</b>
           </Alert>
           {!props.forecastsOutsideRadius.length ? renderSadFace() : (
             <ForecastsView {...props} forecasts={props.forecastsOutsideRadius} driveHoursRequested={MAX_DRIVE_MINUTES / 60} />
@@ -344,8 +366,8 @@ Forecast.getInitialProps = async (ctx): Promise<ForecastProps> => {
   const cookies = parseCookies(ctx)
   const defaultEmail = isValidEmail(cookies.email) ? cookies.email as string : ""
 
-  const { cityID, driveHours, weathType } = ctx.query
-  const res = await fetch(process.env.BASE_URL + `/api/weath?driveHours=${driveHours}&cityID=${cityID}&weathType=${weathType}`)
+  const { cityID, driveHours, weathType, wkndsOnly } = ctx.query
+  const res = await fetch(`${process.env.BASE_URL}/api/weath?driveHours=${driveHours}&cityID=${cityID}&weathType=${weathType}&wkndsOnly=${wkndsOnly}`)
   if (!res.ok) {
     throw new Error((await res.json()).error)
   }

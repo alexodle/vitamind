@@ -1,9 +1,19 @@
 import { WeathType, ProcessedDailyForecast } from "./types"
-import { WEATH_TYPES } from "./constants"
+import { WEATH_TYPES, VALID_DRIVE_HOURS } from "./constants"
 
 const EMAIL_REGEX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 
 const PST_OFFSET_MILLIS = -8 * 60 * 60 * 1000
+
+const VOWELS = 'aeiou8'
+
+export const capitalizeFirst = (s: string) => s[0].toUpperCase() + s.substr(1)
+
+export const aOrAn = (nextWord: any): 'a' | 'an' => VOWELS.includes(nextWord.toString()[0].toLowerCase()) ? 'an' : 'a'
+
+export const parseBool = (s: string): boolean => s === 'true'
+
+export const isWeekend = (d: Date): boolean => d.getDay() === 5 || d.getDay() === 6
 
 // returns Date in PST
 export const getToday = (): Date => {
@@ -16,6 +26,8 @@ export const getToday = (): Date => {
 export const isValidEmail = (email: string) => EMAIL_REGEX.test(email)
 
 export const isValidWeathType = (weathType: WeathType) => WEATH_TYPES.indexOf(weathType) !== -1
+
+export const isValidDriveHours = (driveHours: number) => VALID_DRIVE_HOURS.indexOf(driveHours) !== -1
 
 const getWeatherImgNames = (df: ProcessedDailyForecast): [string, string, string] => {
   if (df.rainpct >= 20) {

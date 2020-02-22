@@ -7,6 +7,8 @@ import { Alert } from '../../src/components/Alert'
 import { Layout } from '../../src/components/Layout'
 import { VALID_DRIVE_HOURS } from '../../src/constants'
 import { GetUserAlertsResult, User, UserAlert, WeathType } from '../../src/types'
+import { SearchCriteria } from '../forecast'
+import { parseBool, aOrAn } from '../../src/util'
 
 export interface ManageAlertsProps {
   user: User
@@ -37,7 +39,7 @@ const rowStyles = css`
     display: inline-block;
   }
   .alert-display {
-    width: 450px;
+    width: 550px;
   }
   .buttons {
     margin-left: 20px;
@@ -47,8 +49,6 @@ const rowStyles = css`
   }
 `
 
-const friendlyWeathType = (weathType: WeathType) => weathType === 'sunny' ? 'Sunny weather' : 'Warm weather'
-
 const Button: FunctionComponent<ButtonProps> = ({ children, onClick, disabled }) => (
   <a href="#" onClick={ev => { ev.preventDefault(); if (!disabled) { onClick(); } }}>{children}</a>
 )
@@ -56,11 +56,13 @@ const Button: FunctionComponent<ButtonProps> = ({ children, onClick, disabled })
 const EditAlertRow: FunctionComponent<EditAlerRowProps> = ({ userAlert, onSave, onCancel, isSubmitting }) => {
   const [driveHours, setDriveHours] = useState((userAlert.max_drive_minutes / 60).toString())
   const [weathType, setWeathType] = useState(userAlert.weath_type)
+  const [wkndsOnlyStr, setWkndsOnlyStr] = useState(userAlert.wknds_only.toString())
 
   const onSaveClick = () => {
     onSave({
       max_drive_minutes: parseInt(driveHours, 10) * 60,
       weath_type: weathType,
+      wknds_only: parseBool(wkndsOnlyStr),
     })
   }
 
@@ -68,10 +70,15 @@ const EditAlertRow: FunctionComponent<EditAlerRowProps> = ({ userAlert, onSave, 
     <Fragment>
       <span className='alert-display'>
         <select id='weathType' name='weathType' value={weathType} onChange={e => setWeathType(e.target.value as WeathType)} disabled={isSubmitting}>
-          <option value={'sunny'}>Sunny weather</option>
-          <option value={'warm'}>Warm weather</option>
+          <option value='sunny'>Sunny weather</option>
+          <option value='warm'>Warm weather</option>
         </select>
-        {' '}within a{' '}
+        {' '}
+        <select id='wkndsOnly' name='wkndsOnly' value={wkndsOnlyStr} onChange={ev => setWkndsOnlyStr(ev.target.value)} disabled={isSubmitting}>
+          <option value='false'>on any day</option>
+          <option value='true'>this weekend</option>
+        </select>
+        {' '}within {aOrAn(driveHours)}{' '}
         <select id='driveHours' name='driveHours' value={driveHours} onChange={ev => setDriveHours(ev.target.value)} disabled={isSubmitting}>
           {VALID_DRIVE_HOURS.map(h =>
             <option key={h} value={h.toString()}>{h} hour</option>
@@ -109,7 +116,7 @@ const AlertRow: FunctionComponent<AlertRowProps> = ({ user, userAlert, onUpdate,
   const saveChanges = async (update: Partial<UserAlert>) => {
     setIsSubmitting(true)
     try {
-      await updateUserAlert(userAlert.id, user.user_uuid!, userAlert.city.id, update.max_drive_minutes!, update.weath_type!)
+      await updateUserAlert(userAlert.id, user.user_uuid!, userAlert.city.id, update.max_drive_minutes!, update.weath_type!, update.wknds_only!)
       onUpdate(update, 'props')
       setIsEditing(false)
     } catch (e) {
@@ -140,7 +147,7 @@ const AlertRow: FunctionComponent<AlertRowProps> = ({ user, userAlert, onUpdate,
   const renderRow = () => (
     <Fragment>
       <span className={`alert-display ${userAlert.active ? 'active' : 'inactive'}`}>
-        <b>{friendlyWeathType(userAlert.weath_type)}</b> within a <b>{userAlert.max_drive_minutes / 60} hour</b> drive of <b>{userAlert.city.name}</b>
+        <SearchCriteria capitalize city={userAlert.city} maxDriveMinutes={userAlert.max_drive_minutes} weathType={userAlert.weath_type} wkndsOnly={userAlert.wknds_only} />
       </span>
       <span className='buttons'>{renderButtons()}</span>
       <style jsx>{rowStyles}</style>

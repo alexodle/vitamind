@@ -9,7 +9,7 @@ import { InvalidRequestError, NotFoundError } from "../../../src/errors";
 import { createRequestHandler } from "../../../src/requestHandler";
 import { ProcessedForecast, UserAlertWithStatus } from "../../../src/types";
 import { friendlyHoursText } from "../../../src/util";
-import { DailyForecastBlock, DailyForecastList } from '../../forecast';
+import { DailyForecastBlock, DailyForecastList, SearchCriteria } from '../../forecast';
 
 const LOCAL_IPS = [
   '::ffff:127.0.0.1',
@@ -26,10 +26,10 @@ interface EmailAlertProps {
 const Section: FunctionComponent<{}> = ({ children }) => <section style={{ marginBottom: '40px' }}>{children}</section >
 
 const EmailAlertHTML: FunctionComponent<EmailAlertProps> = ({ userAlert, recommendations }) => {
-  const { user, cities_gained, cities_lost, weath_type, max_drive_minutes, city } = userAlert
+  const { user, cities_gained, cities_lost, weath_type, wknds_only, max_drive_minutes, city } = userAlert
   const vitamindDURL = `${process.env.BASE_URL}/forecast?cityID=${city.id}&driveHours=${max_drive_minutes / 60}&weath_type=${weath_type}&emailAlert=true`
 
-  const renderNoDestinations = () => (
+  const renderNoDestinations = (): JSX.Element => (
     <>
       <h2>Big picture</h2>
       <p>:( currently there are no cities that match your criteria . Rest assured we'll let you know as soon as that changes.</p>
@@ -41,9 +41,9 @@ const EmailAlertHTML: FunctionComponent<EmailAlertProps> = ({ userAlert, recomme
       <Section>
         <p>
           {user.email},<br /><br />
-          We detected changes to your alert: <b>{weath_type} weather</b> within a <b>{max_drive_minutes / 60} hour</b> drive of <b>{city.name}</b>. Check them out below or{' '}
-          <a target='_blank' href={vitamindDURL}>get the most up to date forecasts at VitaminD</a>.
-            </p>
+          We detected changes to your alert: <SearchCriteria city={city} weathType={weath_type} maxDriveMinutes={max_drive_minutes} wkndsOnly={wknds_only} />.
+          {' '}Check them out below or <a target='_blank' href={vitamindDURL}>get the most up to date forecasts at VitaminD</a>.
+        </p>
       </Section>
       {!cities_gained.length ? null : (
         <Section>
@@ -78,7 +78,7 @@ const EmailAlertHTML: FunctionComponent<EmailAlertProps> = ({ userAlert, recomme
                 <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
                 <DailyForecastList>
                   {f.results.map(df =>
-                    <DailyForecastBlock key={(df.date as Date).getDate()} df={df} weathType={weath_type} />
+                    <DailyForecastBlock key={(df.date as Date).getDate()} df={df} weathType={weath_type} wkndsOnly={wknds_only} />
                   )}
                 </DailyForecastList>
               </div>
@@ -115,7 +115,8 @@ async function generateHTMLEmailAlert(req: NextApiRequest, res: NextApiResponse)
     throw new InvalidRequestError('no changes to alert on')
   }
 
-  const recommendations = (await getRecommendationsForCity(userAlert.city.id, userAlert.weath_type, DEFAULT_FORECAST_LIMIT)).filter(r => r.driveTimeMinutes <= userAlert.max_drive_minutes)
+  const recommendations = (await getRecommendationsForCity(userAlert.city.id, userAlert.weath_type, userAlert.wknds_only, DEFAULT_FORECAST_LIMIT))
+    .filter(r => r.driveTimeMinutes <= userAlert.max_drive_minutes)
 
   const body = ReactDOMServer.renderToString(<EmailAlertHTML userAlert={userAlert} recommendations={recommendations} />)
   const styles = flushToHTML()

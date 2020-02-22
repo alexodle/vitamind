@@ -17,6 +17,7 @@ export interface UserAlert {
   city: Omit<City, 'selectable'>
   max_drive_minutes: number
   weath_type: WeathType
+  wknds_only: boolean
   active: boolean
 }
 
@@ -67,12 +68,21 @@ export interface WeathResult {
   city: City
   limit: number
   weathType: WeathType,
+  wkndsOnly: boolean,
 
   driveHoursRequested: number
   minimumDriveHours: number
 
   // Included if there were 0 forecasts within the radius
   forecastsOutsideRadius: ProcessedForecast[]
+}
+
+export interface PostUserAlertRequest {
+  cityID: number
+  driveHours: number
+  weathType: WeathType
+  wkndsOnly: boolean
+  email: string
 }
 
 export interface PostUserAlertResult {

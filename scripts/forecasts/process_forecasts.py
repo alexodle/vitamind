@@ -24,6 +24,8 @@ FC_COLS = [
 ]
 IDXS = dict((c, i) for i, c in enumerate(FC_COLS))
 
+WEEKEND_DAYS = (5, 6)
+
 
 # IMPORTANT: definition of sunny should match the image we display on the frontend (should probably move that logic here)
 def is_sunny_day(rainpct, cloudcover):
@@ -59,9 +61,23 @@ def evaluate_fcs(fcs):
   fcs = fcs[:6]
   max_consecutive = max_consecutive_sunny_days(fcs)
   max_consecutive_warm = max_consecutive_warm_days(fcs)
+
+  wknd_fcs = [fc for fc in fcs if fc[IDXS['fc_date']].weekday() in WEEKEND_DAYS]
+  max_consecutive_wknd = max_consecutive_sunny_days(wknd_fcs)
+  max_consecutive_warm_wknd = max_consecutive_warm_days(wknd_fcs)
+
   is_recommended = max_consecutive > 1
   is_recommended_warm = max_consecutive_warm > 1
-  return len(fcs), max_consecutive, is_recommended, max_consecutive_warm, is_recommended_warm
+  is_recommended_wknd = max_consecutive_wknd > 0
+  is_recommended_warm_wknd = max_consecutive_warm_wknd > 0
+
+  return (
+    len(fcs),
+    max_consecutive, is_recommended,
+    max_consecutive_warm, is_recommended_warm,
+    max_consecutive_wknd, is_recommended_wknd,
+    max_consecutive_warm_wknd, is_recommended_warm_wknd
+  )
 
 
 def process_forecast(city_id, city_name, today_iso):
@@ -74,12 +90,34 @@ def process_forecast(city_id, city_name, today_iso):
         WHERE city_id = %s AND date_forecasted = %s
         '''.format(', '.join(FC_COLS)), (city_id, today_iso))
       fcs = cur.fetchall()
-      ndays, max_consecutive, is_recommended, max_consecutive_warm, is_recommended_warm = evaluate_fcs(fcs)
+      (
+        ndays,
+        max_consecutive, is_recommended,
+        max_consecutive_warm, is_recommended_warm,
+        max_consecutive_wknd, is_recommended_wknd,
+        max_consecutive_warm_wknd, is_recommended_warm_wknd,
+      ) = evaluate_fcs(fcs)
       cur.execute('''
-        INSERT INTO processed_forecast(city_id, date_forecasted, ndays, max_consecutive_good_days, is_recommended, max_consecutive_warm_days, is_recommended_warm)
-        VALUES(%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO processed_forecast(
+          city_id,
+          date_forecasted,
+          ndays,
+          max_consecutive_good_days, is_recommended,
+          max_consecutive_warm_days, is_recommended_warm,
+          max_consecutive_wknd, is_recommended_wknd,
+          max_consecutive_warm_wknd, is_recommended_warm_wknd
+          )
+        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (city_id, date_forecasted) DO NOTHING;
-        ''', (city_id, today_iso, ndays, max_consecutive, is_recommended, max_consecutive_warm, is_recommended_warm))
+        ''', (
+          city_id,
+          today_iso,
+          ndays,
+          max_consecutive, is_recommended,
+          max_consecutive_warm, is_recommended_warm,
+          max_consecutive_wknd, is_recommended_wknd,
+          max_consecutive_warm_wknd, is_recommended_warm_wknd,
+          ))
 
 
 def process_weekly_forecasts():

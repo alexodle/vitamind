@@ -5,7 +5,7 @@ import { DEFAULT_DRIVE_HOURS, DEFAULT_FORECAST_LIMIT, VALID_DRIVE_HOURS } from "
 import { InvalidRequestError, NotFoundError } from '../../src/errors';
 import { createRequestHandler } from '../../src/requestHandler';
 import { ProcessedDailyForecast, WeathResult, WeathType } from "../../src/types";
-import { isValidWeathType } from '../../src/util';
+import { isValidWeathType, parseBool } from '../../src/util';
 
 function safeGetDriveHours(req: NextApiRequest): number {
   let driveHours = DEFAULT_DRIVE_HOURS
@@ -23,6 +23,10 @@ function safeGetDriveHours(req: NextApiRequest): number {
 function safeGetWeathType(req: NextApiRequest): WeathType {
   const weathType = req.query.weathType as WeathType
   return isValidWeathType(weathType) ? weathType : 'sunny'
+}
+
+function safeGetWkndsOnly(req: NextApiRequest): boolean {
+  return parseBool(req.query.wkndsOnly as string)
 }
 
 async function get(req: NextApiRequest, res: NextApiResponse) {
@@ -43,9 +47,10 @@ async function get(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const weathType = safeGetWeathType(req)
-
   const driveHours = safeGetDriveHours(req)
-  const allForecasts = await getRecommendationsForCity(city.id, weathType, limit)
+  const wkndsOnly = safeGetWkndsOnly(req)
+
+  const allForecasts = await getRecommendationsForCity(city.id, weathType, wkndsOnly, limit)
 
   // forecasts may include recommendations outside of our target radius
   const driveTimeMinutes = driveHours * 60
@@ -68,6 +73,8 @@ async function get(req: NextApiRequest, res: NextApiResponse) {
     weathType,
     city,
     driveHoursRequested: driveHours,
+    wkndsOnly,
+
     minimumDriveHours,
 
     // Only include forecastsOutsideRadius if there are no forecasts within radius

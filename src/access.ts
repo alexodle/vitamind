@@ -6,7 +6,8 @@ import { sendConfirmationEmail } from './emailConfAccess'
 import { InvalidRequestError, NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
 import { City, ProcessedDailyForecast, ProcessedForecast, User, UserAlert, WeathType, UserAlertWithStatus } from './types'
-import { isValidWeathType, getToday } from './util'
+import { isValidWeathType, getToday, isValidEmail, isValidDriveHours, isWeekend } from './util'
+import { isBoolean } from 'util'
 
 const NDAYS = 6
 
@@ -105,14 +106,22 @@ export async function getDailyForecastsForCities(cityIDs: number[], dateForecast
   return groupBy(dailies, d => d.city_id.toString())
 }
 
-export async function getRecommendationsForCity(targetCityID: number, weathType: WeathType, limit: number): Promise<ProcessedForecast[]> {
+type IsRecommendedProp = 'is_recommended' | 'is_recommended_wknd' | 'is_recommended_warm' | 'is_recommended_warm_wknd'
+const getIsRecommendedProp = (weathType: WeathType, wkndsOnly: boolean): IsRecommendedProp => {
+  if (weathType === 'sunny') {
+    return !wkndsOnly ? 'is_recommended' : 'is_recommended_wknd'
+  }
+  return !wkndsOnly ? 'is_recommended_warm' : 'is_recommended_warm_wknd'
+}
+
+export async function getRecommendationsForCity(targetCityID: number, weathType: WeathType, wkndsOnly: boolean, limit: number): Promise<ProcessedForecast[]> {
   const dateForecasted = await getLatestForecastDate()
 
   if (process.env.NODE_ENV !== 'production') {
     console.log('Query params:' + [dateForecasted, targetCityID, weathType, limit])
   }
 
-  const goodDayProp = weathType === 'sunny' ? 'is_recommended' : 'is_recommended_warm'
+  const isRecommendedProp = getIsRecommendedProp(weathType, wkndsOnly)
   const processedFcResults = await pool.query(`
     SELECT
       city.id AS city_id, city.name AS city_name, date_forecasted, ndays,
@@ -122,16 +131,28 @@ export async function getRecommendationsForCity(targetCityID: number, weathType:
     FROM processed_forecast pf
     JOIN city ON city.id = pf.city_id
     JOIN city_travel_time_all ctt ON ctt.city_from_id = $2 AND ctt.city_to_id = pf.city_id
-    WHERE ${goodDayProp} = TRUE AND date_forecasted = $1 AND ctt.gmap_drive_time_minutes <= $3
+    WHERE ${isRecommendedProp} = TRUE AND date_forecasted = $1 AND ctt.gmap_drive_time_minutes <= $3
     ORDER BY ctt.gmap_drive_time_minutes ASC
     LIMIT $4;
   `, [dateForecasted, targetCityID, MAX_DRIVE_MINUTES, limit])
 
-  return await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
+  const results = await buildProcessedForecasts(dateForecasted, processedFcResults.rows)
+
+  // Adjust daily recommendations for wkndsOnly requests
+  if (wkndsOnly) {
+    results.forEach(r => r.results.forEach(df => {
+      if (!isWeekend(df.date as Date)) {
+        df.isGoodDay = false
+        df.isWarmDay = false
+      }
+    }))
+  }
+
+  return results
 }
 
-export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number, weathType: WeathType): Promise<[User, UserAlert]> {
-  if (!email || isNaN(cityID) || VALID_DRIVE_HOURS.indexOf(driveHours) === -1 || !isValidWeathType(weathType)) {
+export async function createOrUpdateUserAlert(email: string, cityID: number, driveHours: number, weathType: WeathType, wkndsOnly: boolean): Promise<[User, UserAlert]> {
+  if (isNaN(cityID) || !isValidEmail(email) || !isValidDriveHours(driveHours) || !isValidWeathType(weathType) || !isBoolean(wkndsOnly)) {
     throw new InvalidRequestError(`invalid param value`)
   }
 
@@ -139,16 +160,17 @@ export async function createOrUpdateUserAlert(email: string, cityID: number, dri
   const user: User = (await pool.query(`SELECT id, email, email_confirmed FROM users WHERE email = $1;`, [email])).rows[0]
 
   await pool.query(`
-    INSERT INTO user_alert(user_id, city_id, max_drive_minutes, weath_type)
-    VALUES($1, $2, $3, $4)
+    INSERT INTO user_alert(user_id, city_id, max_drive_minutes, weath_type, wknds_only)
+    VALUES($1, $2, $3, $4, $5)
     ON CONFLICT(user_id, city_id) DO UPDATE SET
       active = TRUE,
       max_drive_minutes = $3,
-      weath_type = $4;
-    `, [user.id, cityID, driveHours * 60, weathType])
+      weath_type = $4,
+      wknds_only = $5;
+    `, [user.id, cityID, driveHours * 60, weathType, wkndsOnly])
 
   const userAlert: UserAlert = (await pool.query(`
-    SELECT user_id, city_id, max_drive_minutes, weath_type
+    SELECT user_id, city_id, max_drive_minutes, weath_type, wknds_only
     FROM user_alert
     WHERE user_id = $1;
     `, [user.id])).rows[0]
@@ -193,6 +215,7 @@ export async function getAlertsForUser(userUUID: string): Promise<UserAlert[]> {
       c.name city_name,
       a.max_drive_minutes max_drive_minutes,
       a.weath_type weath_type,
+      a.wknds_only wknds_only,
       a.active active
     FROM user_alert a
     JOIN users u ON u.id = a.user_id
@@ -205,6 +228,7 @@ export async function getAlertsForUser(userUUID: string): Promise<UserAlert[]> {
     user: { id: r.user_id, email: r.user_email },
     max_drive_minutes: r.max_drive_minutes,
     weath_type: r.weath_type,
+    wknds_only: r.wknds_only,
     active: r.active,
   }))
   return results

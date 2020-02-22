@@ -30,6 +30,7 @@ COLS = [
   'city.name city_name',
   'user_alert.max_drive_minutes max_drive_minutes',
   'user_alert.weath_type weath_type',
+  'user_alert.wknds_only wknds_only',
   'start_date_forecasted',
   'end_date_forecasted',
   'cities_gained_csl',
@@ -80,6 +81,7 @@ def build_html_email(today, cities, alert):
       'city': { 'id': get(alert, 'city_id'), 'name': get(alert, 'city_name') },
       'max_drive_minutes': get(alert, 'max_drive_minutes'),
       'weath_type': get(alert, 'weath_type'),
+      'wknds_only': get(alert, 'wknds_only'),
       'active': True,
       'start_date_forecasted': get(alert, 'start_date_forecasted').isoformat(),
       'end_date_forecasted': get(alert, 'end_date_forecasted').isoformat(),
@@ -182,6 +184,7 @@ def process_user_alerts():
           user_alert.city_id = alert_status.city_id AND
           user_alert.max_drive_minutes = alert_status.max_drive_minutes AND
           user_alert.weath_type = alert_status.weath_type AND
+          user_alert.wknds_only = alert_status.wknds_only AND
           end_date_forecasted = %s
         )
         WHERE users.email_confirmed = TRUE AND user_alert.active = TRUE AND user_alert.id NOT IN (

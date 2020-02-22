@@ -3,18 +3,16 @@
 
 -- Table Definition ----------------------------------------------
 
-CREATE TABLE alert_status (
+CREATE TABLE user_alert (
+    id SERIAL PRIMARY KEY,
     city_id integer NOT NULL REFERENCES city(id),
-    start_date_forecasted date NOT NULL,
-    end_date_forecasted date NOT NULL,
-    cities_gained_csl text NOT NULL,
-    cities_lost_csl text NOT NULL,
-    did_change boolean NOT NULL,
     max_drive_minutes integer NOT NULL,
-    weath_type text NOT NULL
+    user_id integer NOT NULL REFERENCES users(id),
+    active boolean NOT NULL DEFAULT true,
+    weath_type text NOT NULL,
+    wknds_only boolean NOT NULL
 );
 
 -- Indices -------------------------------------------------------
 
-CREATE INDEX alert_status_start_date_forecasted_end_date_forecasted_did_chan ON alert_status(start_date_forecasted date_ops,end_date_forecasted date_ops,did_change bool_ops);
-CREATE UNIQUE INDEX alert_status_unique_props_idx ON alert_status(city_id int4_ops,end_date_forecasted date_ops,max_drive_minutes int4_ops,weath_type text_ops);
+CREATE UNIQUE INDEX user_alert_city_id_user_id_idx ON user_alert(city_id int4_ops,user_id int4_ops);

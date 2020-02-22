@@ -9,11 +9,13 @@ CREATE TABLE processed_forecast (
     date_forecasted date NOT NULL,
     max_consecutive_good_days integer NOT NULL,
     is_recommended boolean NOT NULL,
-    good_days_csl text,
     ndays integer NOT NULL,
     max_consecutive_warm_days integer NOT NULL,
-    warm_days_csl text,
-    is_recommended_warm boolean NOT NULL
+    is_recommended_warm boolean NOT NULL,
+    max_consecutive_wknd integer NOT NULL,
+    is_recommended_wknd boolean NOT NULL,
+    max_consecutive_warm_wknd integer NOT NULL,
+    is_recommended_warm_wknd boolean NOT NULL
 );
 
 -- Indices -------------------------------------------------------

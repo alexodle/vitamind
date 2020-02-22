@@ -6,12 +6,14 @@ import { DEFAULT_CITY, HARDCODED_DARK_CITIES } from '../gen/ts/db_constants'
 import { Layout } from '../src/components/Layout'
 import { DEFAULT_COOKIE_OPTIONS, DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
 import { WeathType } from '../src/types'
-import { isValidWeathType } from '../src/util'
+import { isValidWeathType, parseBool } from '../src/util'
+import { isBoolean } from 'util'
 
 export interface IndexProps {
   defaultCityID?: number
   defaultDriveHours?: number
   defaultWeathType?: WeathType
+  defaultWkndsOnly?: boolean
 }
 
 const LongTooltip: FunctionComponent<{}> = ({ children }) => {
@@ -43,11 +45,12 @@ const LongTooltip: FunctionComponent<{}> = ({ children }) => {
   )
 }
 
-const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, defaultWeathType }) => {
+const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, defaultWeathType, defaultWkndsOnly }) => {
   const [cityID, setCityID] = useState((defaultCityID || DEFAULT_CITY).toString())
   const [driveHours, setDriveHours] = useState((defaultDriveHours || DEFAULT_DRIVE_HOURS).toString())
-  const [isQuerying, setIsQuerying] = useState(false)
   const [weathType, setWeathType] = useState<WeathType>(defaultWeathType || 'sunny')
+  const [wkndsOnly, setWkndsOnly] = useState(!!defaultWkndsOnly)
+  const [isQuerying, setIsQuerying] = useState(false)
 
   const onSubmit = (ev: SyntheticEvent) => {
     ev.preventDefault()
@@ -58,8 +61,9 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
     setCookie(null, 'defaultCityID', cityID, DEFAULT_COOKIE_OPTIONS)
     setCookie(null, 'defaultDriveHours', driveHours, DEFAULT_COOKIE_OPTIONS)
     setCookie(null, 'defaultWeathType', weathType, DEFAULT_COOKIE_OPTIONS)
+    setCookie(null, 'defaultWkndsOnly', wkndsOnly.toString(), DEFAULT_COOKIE_OPTIONS)
 
-    Router.push(`/forecast?cityID=${cityID}&driveHours=${driveHours}&weathType=${weathType}`)
+    Router.push(`/forecast?cityID=${cityID}&driveHours=${driveHours}&weathType=${weathType}&wkndsOnly=${wkndsOnly}`)
   }
 
   return (
@@ -80,24 +84,28 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
               )}
             </select>
           </label>
-          <label htmlFor='weathType'>What are you looking for? <LongTooltip>
-            <div className='prop-descrip-container'>
-              <div className='prop'>Sunny weather</div>
-              <div className='descrip'>
-                At least two consecutive days with "Warm weather" OR {'<'} 20% chance of rain and {'<'} 75% cloud cover.
+          <label>What are you looking for? <LongTooltip>
+            <>
+              <div className='prop-descrip-container'>
+                <div className='prop'>Sunny weather</div>
+                <div className='descrip'>
+                  At least two consecutive days* with "Warm weather" OR {'<'} 20% chance of rain and {'<'} 75% cloud cover.
+                </div>
+                <div className='prop'>Warm weather</div>
+                <div className='descrip'>
+                  At least two consecutive days* with {'<'} 20% chance of rain, {'<'} 100% cloud cover,{' '}
+                  max temperature {'>='} 67°F, and a max feels like temparature {'<='} 90°F.
+                </div>
               </div>
-              <div className='prop'>Warm weather</div>
-              <div className='descrip'>
-                At least two consecutive days with {'<'} 20% chance of rain, {'<'} 100% cloud cover,{' '}
-                max temperature {'>='} 67°F, and a max feels like temparature {'<='} 90°F.
-              </div>
-            </div>
+              <p className='caveats'>* Just one day is required for <em>Weekends only</em> searches</p>
+            </>
           </LongTooltip>
             <select id='weathType' name='weathType' value={weathType} onChange={ev => setWeathType(ev.target.value as WeathType)} disabled={isQuerying}>
               <option value={'sunny'}>Sunny weather</option>
               <option value={'warm'}>Warm weather</option>
             </select>
           </label>
+          <label htmlFor='wkndsOnly'><input id='wkndsOnly' name='wkndsOnly' type='checkbox' checked={wkndsOnly} onChange={ev => setWkndsOnly(!!ev.target.checked)} /> Weekends only?</label>
           <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
         </form>
       </section>
@@ -123,7 +131,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
         }
         select, button.submit {
           margin-top: 10px;
-          width: 20em;
+          width: 100%;
         }
         select {
           display: block;
@@ -163,27 +171,35 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
         }
         .descrip {
         }
+        .caveats {
+          margin-bottom: 0;
+        }
       `}</style>
     </Layout>
   )
 }
 
 Index.getInitialProps = (ctx: NextPageContext): IndexProps => {
+  const result: IndexProps = {}
+
   const cookies = parseCookies(ctx)
-  if (!cookies.defaultCityID || !cookies.defaultDriveHours) {
-    return {}
+
+  const defaultCityID = parseInt(cookies.defaultCityID, 10)
+  if (!isNaN(defaultCityID)) {
+    result.defaultCityID = defaultCityID
   }
 
-  const result: IndexProps = {
-    defaultCityID: parseInt(cookies.defaultCityID, 10),
-    defaultDriveHours: parseInt(cookies.defaultDriveHours, 10),
-  }
-  if (isNaN(result.defaultCityID as number) || isNaN(result.defaultDriveHours as number)) {
-    return {}
+  const defaultDriveHours = parseInt(cookies.defaultDriveHours, 10)
+  if (!isNaN(defaultDriveHours)) {
+    result.defaultDriveHours = defaultDriveHours
   }
 
   if (isValidWeathType(cookies.defaultWeathType as WeathType)) {
     result.defaultWeathType = cookies.defaultWeathType as WeathType
+  }
+
+  if (cookies.defaultWkndsOnly !== undefined) {
+    result.defaultWkndsOnly = parseBool(cookies.defaultWkndsOnly)
   }
 
   return result

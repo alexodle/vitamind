@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { createOrUpdateUserAlert, getUserByUUID, toggleUserAlert } from "../../../src/access";
 import { InvalidRequestError } from "../../../src/errors";
 import { createRequestHandler } from "../../../src/requestHandler";
-import { UserAlert, WeathType } from "../../../src/types";
+import { UserAlert } from "../../../src/types";
 
 async function updateAlert(req: NextApiRequest, res: NextApiResponse) {
   const id = parseInt(req.query.id as string, 10)
@@ -18,10 +18,11 @@ async function updateAlert(req: NextApiRequest, res: NextApiResponse) {
     await toggleUserAlert(id, userUUID, true)
   } else {
     const user = await getUserByUUID(userUUID)
-    const cityID = update.city!.id as number
-    const maxDriveMins = update.max_drive_minutes as number
-    const weathType = update.weath_type as WeathType
-    await createOrUpdateUserAlert(user.email, cityID, maxDriveMins / 60, weathType)
+    const cityID = update.city!.id!
+    const maxDriveMins = update.max_drive_minutes!
+    const weathType = update.weath_type!
+    const wkndsOnly = update.wknds_only!
+    await createOrUpdateUserAlert(user.email, cityID, maxDriveMins / 60, weathType, wkndsOnly)
   }
 
   res.status(204).send({})

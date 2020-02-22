@@ -9,7 +9,8 @@ CREATE TABLE user_alert (
     max_drive_minutes integer NOT NULL,
     user_id integer NOT NULL REFERENCES users(id),
     active boolean NOT NULL DEFAULT true,
-    weath_type text NOT NULL
+    weath_type text NOT NULL,
+    wknds_only boolean NOT NULL
 );
 
 -- Indices -------------------------------------------------------
