@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>VitaminD</title>
+    <meta charSet="utf-8" />
+    <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no" />
+    <style>
+        @media only screen and (max-width: 812px) {
+            .full {
+                display: none !important;
+            }
+            .short {
+                display: inline-block !important;
+            }
+            h4 {
+                width: 3em !important;
+            }
+        }
+
+        @media only screen and (max-width: 812px) {
+            .reg {
+                display: none !important;
+            }
+            .small {
+                display: inline-block !important;
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        @media only screen and (max-width: 812px) {
+            .container {
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+            }
+        }
+
+        @media only screen and (max-width: 812px) {
+            .daily-forecast-li {
+                padding-right: 0 !important;
+            }
+        }
+
+        @media only screen and (max-width: 812px) {
+            .daily-forecast-list {
+                display: -webkit-box;
+                display: -webkit-flex;
+                display: -ms-flexbox;
+                display: flex;
+                -webkit-box-pack: justify;
+                -webkit-justify-content: space-between;
+                -ms-flex-pack: justify;
+                justify-content: space-between;
+            }
+            .daily-forecast-list::before {
+                content: "";
+            }
+            .daily-forecast-list::after {
+                content: "";
+            }
+        }
+
+        @media only screen and (max-width:812px) {
+            .container{
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body style="font-family: Arial, Helvetica, sans-serif;">
+    <div class="container" style="margin: auto; width: 800px;">
+    <h1 style="font-size: 40px; font-style: italic;"><a style="-webkit-text-decoration:none; text-decoration:none; color:inherit;" href="/">VitaminD</a></h1>
+
+    <section style="margin-bottom: 40px;">
+        <p>{{user_email}},<br /><br />
+            We detected changes to your alert:<span> </span>
+            {% if wknds_only %}
+            <b>{{weath_type.capitalize()}} weather</b> within {{drive_hours|aOrAn}} <b>{{drive_hours}} hour</b> drive of <b>{{city_name}}</b>.
+            {% else %}
+            <b>{{weath_type.capitalize()}} weather</b> <b>this weekend</b> within {{drive_hours|aOrAn}} <b>{{drive_hours}} hour</b> drive of <b>{{city_name}}</b>.
+            {% endif %}
+            Check them out below or <a target='_blank' href='{{href}}'>get the most up to date forecasts at VitaminD</a>.
+        </p>
+    </section>
+
+    {% if cities_gained|length > 0 %}
+    <section style="margin-bottom: 40px;">
+        <h2>New destinations :D</h2>
+        <ul>
+        {% for city_name in cities_gained %}
+            <li>{{city_name}}</li>
+        {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    {% if cities_lost|length > 0 %}
+    <section style="margin-bottom: 40px;">
+        <h2>Cities lost :(</h2>
+        <ul>
+        {% for city_name in cities_lost %}
+            <li>{{city_name}}</li>
+        {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <section style="margin-bottom: 40px;">
+    {% if recommendations|length == 0 %}
+        <h2>Big picture</h2>
+        <p>:( currently there are no cities that match your criteria. Rest assured we'll let you know as soon as that changes.</p>
+    {% else %}
+        {% if recommendations_cutoff %}
+            <h2>Your {{recommendations|length}} closest destinations</h2>
+        {% elif recommendations|length > 1 %}
+            <h2>We found {{recommendations|length}} destinations</h2>
+        {% else %}
+            <h2>We found 1 destination</h2>
+        {% endif %}
+    {% endif %}
+    {% for f in recommendations %}
+        <div>
+            <h3>{{f.city_name}} ({{f.drive_hours|friendly_hours}})</h3>
+            <ol class='daily-forecast-list' style="padding-inline-start:0">
+            {% for df in f.daily_forecasts %}
+                {% if loop.last %}
+                    <li className='daily-forecast-li' style="display:inline-block;padding-right:0;" }}>
+                {% else %}
+                    <li className='daily-forecast-li' style="display:inline-block;padding-right:15px;" }}>
+                {% endif %}
+                    <div style="padding:10px;border:gray 1px solid;border-radius:10px;text-align:center" class="container">
+                        <h4 style="display:block;padding-top:0;margin-top:0;margin-bottom:10px;text-align:center;width:6em"
+                            ><span class="full">{{df.date|weekday}}</span
+                            ><span style="display:none" class="short">{{df.date|weekday_short}}</span></h4>
+                        <img alt="{{df|img_alt}}" src="{{df|img}}" style="display:inline-block;width:64px;height:64px" class="icon reg"
+                        /><img alt="{{df|img_alt}}" src="{{df|img_small}}" style="display:none" class="icon small" /><br/>{{df.maxtemp}}&deg;F</div>
+                </li>
+            {% endfor %}
+            </ol>
+        </div>
+    {% endfor %}
+    </section>
+
+    </div>
+</body>
+
+</html>

@@ -74,7 +74,7 @@ const EmailAlertHTML: FunctionComponent<EmailAlertProps> = ({ userAlert, recomme
                 `We found ${recommendations.length} destination${recommendations.length < 2 ? '' : 's'}`}
             </h2>
             {recommendations.slice(0, MAX_RESULTS_IN_EMAIL).map(f => (
-              <div key={f.city.id} className="city-forecast recommended">
+              <div key={f.city.id}>
                 <h3>{f.city.name} ({friendlyHoursText(f.driveTimeMinutes)})</h3>
                 <DailyForecastList>
                   {f.results.map(df =>

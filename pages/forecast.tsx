@@ -120,18 +120,18 @@ export const DailyForecastHeader: FunctionComponent<DailyForecastHeaderProps> = 
 
 export interface DailyForecastListProps { }
 export const DailyForecastList: FunctionComponent<DailyForecastListProps> = ({ children }) => (
-  <ol style={{ paddingInlineStart: 0 }}>
+  <ol className='daily-forecast-list' style={{ paddingInlineStart: 0 }}>
     {children}
     <style jsx>{`
       @media ${CSS_MEDIA_PHONE} {
-        ol {
+        .daily-forecast-list {
           display: flex;
           justify-content: space-between;
         }
-        ol::before {
+        .daily-forecast-list::before {
           content: "";
         }
-        ol::after {
+        .daily-forecast-list::after {
           content: "";
         }
       }
@@ -143,11 +143,11 @@ export interface DailyForecastListProps {
   isLast?: boolean
 }
 export const DailyForecastListItem: FunctionComponent<DailyForecastListProps> = ({ children, isLast }) => (
-  <li style={{ display: 'inline-block', paddingRight: !isLast ? '15px' : 0 }}>
+  <li className='daily-forecast-li' style={{ display: 'inline-block', paddingRight: !isLast ? '15px' : 0 }}>
     {children}
     <style jsx>{`
       @media ${CSS_MEDIA_PHONE} {
-        li {
+        .daily-forecast-li {
           padding-right: 0 !important;
         }
       }
