@@ -3,10 +3,17 @@
 
 <head>
     <title>VitaminD</title>
+    <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
     <meta charSet="utf-8" />
     <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no" />
     <style>
         @media only screen and (max-width: 812px) {
+            .container {
+                width: 100% !important;
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+
             .full {
                 display: none !important;
             }
@@ -16,9 +23,7 @@
             h4 {
                 width: 3em !important;
             }
-        }
 
-        @media only screen and (max-width: 812px) {
             .reg {
                 display: none !important;
             }
@@ -27,43 +32,10 @@
                 width: 30px;
                 height: 30px;
             }
-        }
 
-        @media only screen and (max-width: 812px) {
-            .container {
+            .df-container {
                 padding-left: 5px !important;
                 padding-right: 5px !important;
-            }
-        }
-
-        @media only screen and (max-width: 812px) {
-            .daily-forecast-li {
-                padding-right: 0 !important;
-            }
-        }
-
-        @media only screen and (max-width: 812px) {
-            .daily-forecast-list {
-                display: -webkit-box;
-                display: -webkit-flex;
-                display: -ms-flexbox;
-                display: flex;
-                -webkit-box-pack: justify;
-                -webkit-justify-content: space-between;
-                -ms-flex-pack: justify;
-                justify-content: space-between;
-            }
-            .daily-forecast-list::before {
-                content: "";
-            }
-            .daily-forecast-list::after {
-                content: "";
-            }
-        }
-
-        @media only screen and (max-width:812px) {
-            .container{
-                width: 100%;
             }
         }
     </style>
@@ -71,78 +43,86 @@
 
 <body style="font-family: Arial, Helvetica, sans-serif;">
     <div class="container" style="margin: auto; width: 800px;">
-    <h1 style="font-size: 40px; font-style: italic;"><a style="-webkit-text-decoration:none; text-decoration:none; color:inherit;" href="/">VitaminD</a></h1>
+    <h1 style="font-size:40px;font-style:italic;margin-top:0.67em;margin-bottom:0.67em;"><a style="-webkit-text-decoration:none; text-decoration:none; color:inherit;" href='{{href}}'>VitaminD</a></h1>
 
-    <section style="margin-bottom: 40px;">
-        <p>{{user_email}},<br /><br />
+    <div style="margin-bottom: 40px;">
+        <p style="margin-top:1em;margin-bottom:1em;">{{user_email}},<br /><br />
             We detected changes to your alert:<span> </span>
-            {% if wknds_only %}
-            <b>{{weath_type.capitalize()}} weather</b> within {{drive_hours|aOrAn}} <b>{{drive_hours}} hour</b> drive of <b>{{city_name}}</b>.
-            {% else %}
-            <b>{{weath_type.capitalize()}} weather</b> <b>this weekend</b> within {{drive_hours|aOrAn}} <b>{{drive_hours}} hour</b> drive of <b>{{city_name}}</b>.
-            {% endif %}
-            Check them out below or <a target='_blank' href='{{href}}'>get the most up to date forecasts at VitaminD</a>.
+            {%- if wknds_only -%}
+            <b>{{weath_type.capitalize()}} weather</b> within {{max_drive_hours|aOrAn}} <b>{{max_drive_hours}} hour</b> drive of <b>{{city_name}}</b>.
+            {%- else -%}
+            <b>{{weath_type.capitalize()}} weather</b> <b>this weekend</b> within {{max_drive_hours|aOrAn}} <b>{{max_drive_hours}} hour</b> drive of <b>{{city_name}}</b>.
+            {%- endif -%}
+            <span> </span>Check them out below or <a href='{{href}}'>get the most up to date forecasts at VitaminD</a>.
         </p>
-    </section>
+    </div>
 
-    {% if cities_gained|length > 0 %}
-    <section style="margin-bottom: 40px;">
-        <h2>New destinations :D</h2>
-        <ul>
-        {% for city_name in cities_gained %}
-            <li>{{city_name}}</li>
-        {% endfor %}
-        </ul>
-    </section>
+    {%- if cities_gained|length > 0 -%}
+    <div style="margin-bottom: 40px;">
+        <h2 style="border-bottom:1px solid grey;padding-bottom:15px;margin-bottom:30px;font-size:larger;">New destinations</h2>
+        {%- for city_name in cities_gained -%}
+            &bull; {{city_name}}<br />
+        {%- endfor -%}
+    </div>
     {% endif %}
 
-    {% if cities_lost|length > 0 %}
-    <section style="margin-bottom: 40px;">
-        <h2>Cities lost :(</h2>
-        <ul>
-        {% for city_name in cities_lost %}
-            <li>{{city_name}}</li>
-        {% endfor %}
-        </ul>
-    </section>
+    {%- if cities_lost|length > 0 -%}
+    <div style="margin-bottom: 40px;">
+        <h2 style="border-bottom:1px solid grey;padding-bottom:15px;margin-bottom:30px;font-size:larger;">Cities lost</h2>
+        {%- for city_name in cities_lost -%}
+            &bull; {{city_name}}<br />
+        {%- endfor -%}
+    </div>
     {% endif %}
 
-    <section style="margin-bottom: 40px;">
-    {% if recommendations|length == 0 %}
-        <h2>Big picture</h2>
+    <div style="margin-bottom: 40px;">
+    {%- if recommendations|length == 0 -%}
+        <h2 style="border-bottom:1px solid grey;padding-bottom:15px;margin-bottom:30px;font-size:larger;">Big picture</h2>
         <p>:( currently there are no cities that match your criteria. Rest assured we'll let you know as soon as that changes.</p>
-    {% else %}
-        {% if recommendations_cutoff %}
-            <h2>Your {{recommendations|length}} closest destinations</h2>
-        {% elif recommendations|length > 1 %}
-            <h2>We found {{recommendations|length}} destinations</h2>
-        {% else %}
-            <h2>We found 1 destination</h2>
-        {% endif %}
-    {% endif %}
-    {% for f in recommendations %}
-        <div>
-            <h3>{{f.city_name}} ({{f.drive_hours|friendly_hours}})</h3>
-            <ol class='daily-forecast-list' style="padding-inline-start:0">
-            {% for df in f.daily_forecasts %}
-                {% if loop.last %}
-                    <li className='daily-forecast-li' style="display:inline-block;padding-right:0;" }}>
+    {%- else -%}
+        {%- if recommendations_cutoff -%}
+            <h2 style="border-bottom:1px solid grey;padding-bottom:15px;margin-bottom:30px;font-size:larger;">Your {{recommendations|length}} closest destinations</h2>
+        {%- elif recommendations|length > 1 -%}
+            <h2 style="border-bottom:1px solid grey;padding-bottom:15px;margin-bottom:30px;font-size:larger;">Big picture: {{recommendations|length}} destinations</h2>
+        {%- else -%}
+            <h2 style="border-bottom:1px solid grey;padding-bottom:15px;margin-bottom:30px;font-size:larger;">Big picture: 1 destination</h2>
+        {%- endif -%}
+    {%- endif -%}
+    {%- for f in recommendations -%}
+        <h3 style="margin-top:1em;margin-bottom:1em;">{{f.city.name}} ({{f.driveTimeMinutes|mins_to_hours|friendly_hours}})</h3>
+        <table cellpadding="0" cellspacing="0" border="0">
+            <tbody>
+            <tr>
+            {% for df in f.results %}
+                {% if loop.first %}
+                <td class='daily-forecast-li first' style="display:inline-block;margin-right:15px;" }}>
+                {% elif loop.last %}
+                <td class='daily-forecast-li last' style="display:inline-block;margin-right:0;" }}>
                 {% else %}
-                    <li className='daily-forecast-li' style="display:inline-block;padding-right:15px;" }}>
+                <td class='daily-forecast-li' style="display:inline-block;margin-right:15px;" }}>
                 {% endif %}
-                    <div style="padding:10px;border:gray 1px solid;border-radius:10px;text-align:center" class="container">
+                    <div class="df-container" style="padding:10px;border:gray 1px solid;border-radius:10px;text-align:center">
                         <h4 style="display:block;padding-top:0;margin-top:0;margin-bottom:10px;text-align:center;width:6em"
                             ><span class="full">{{df.date|weekday}}</span
                             ><span style="display:none" class="short">{{df.date|weekday_short}}</span></h4>
                         <img alt="{{df|img_alt}}" src="{{df|img}}" style="display:inline-block;width:64px;height:64px" class="icon reg"
                         /><img alt="{{df|img_alt}}" src="{{df|img_small}}" style="display:none" class="icon small" /><br/>{{df.maxtemp}}&deg;F</div>
-                </li>
-            {% endfor %}
-            </ol>
-        </div>
-    {% endfor %}
-    </section>
+                </td>
+            {%- endfor -%}
+            </tbody>
+            </tr>
+        </table>
+    {%- endfor -%}
+    {%- if recommendations_cutoff -%}
+        <a href='{{href}}'}>See all {{total_recommendations}} destinations on VitaminD</a>
+    {%- endif -%}
+    </div>
 
+    <p style="margin-top:1em;margin-bottom:1em;">- VitaminD</p>
+
+    <div style="text-align:center;font-size:smaller;margin-top:20px;">
+        <a href='{{unsub_href}}'>Unsubscribe from this alert</a> | <a href='{{manage_href}}'}>Manage my alerts</a>
+    </div>
     </div>
 </body>
 

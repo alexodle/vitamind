@@ -1,7 +1,8 @@
 import os
 import smtplib
 import ssl
-from datetime import date
+import tmpls
+from datetime import date, datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -71,28 +72,56 @@ Naviagte here to manage alerts: %(manage_href)s
 '''
 
 
+def fill_hrefs(tmpl_params):
+  tmpl_params['href'] = '%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&weathType=%(weath_type)s&emailAlert=true' % tmpl_params
+  tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(user_alert_id)s?userUUID=%(user_uuid)s' % tmpl_params
+  tmpl_params['manage_href'] = '%(base_url)s/user_alert/manage?userUUID=%(user_uuid)s' % tmpl_params
+
+
+MAX_FOR_EMAIL = 5
 def build_html_email(today, cities, alert):
   cities_gained = [cities[int(cid)] for cid in filter(None, get(alert, 'cities_gained_csl').split(','))]
   cities_lost = [cities[int(cid)] for cid in filter(None, get(alert, 'cities_lost_csl').split(','))]
-  payload = {
-    'userAlert': {
-      'id': get(alert, 'user_alert_id'),
-      'user': { 'id': get(alert, 'user_id'), 'email': get(alert, 'user_email'), 'user_uuid': get(alert, 'user_uuid') },
-      'city': { 'id': get(alert, 'city_id'), 'name': get(alert, 'city_name') },
-      'max_drive_minutes': get(alert, 'max_drive_minutes'),
-      'weath_type': get(alert, 'weath_type'),
-      'wknds_only': get(alert, 'wknds_only'),
-      'active': True,
-      'start_date_forecasted': get(alert, 'start_date_forecasted').isoformat(),
-      'end_date_forecasted': get(alert, 'end_date_forecasted').isoformat(),
-      'cities_gained': [{'id': cid, 'name': name} for cid, name in cities_gained],
-      'cities_lost': [{'id': cid, 'name': name} for cid, name in cities_lost],
-      'did_change': True,
-    },
+
+  url_params = {
+    'cityID': get(alert, 'city_id'),
+    'driveHours': get(alert, 'max_drive_minutes') / 60,
+    'weathType': get(alert, 'weath_type'),
+    'wkndsOnly': str(get(alert, 'wknds_only')).lower(),
   }
-  r = requests.post('http://localhost:3000/api/emails/alertHTML', json=payload)
+  r = requests.get('http://localhost:3000/api/weath', params=url_params)
   r.raise_for_status()
-  return r.text.encode('utf-8')
+
+  weath = r.json()
+
+  # filter down to weath results for our driveHours
+  results = [f for f in weath['forecasts'] if f['driveTimeMinutes'] < get(alert, 'max_drive_minutes')]
+  total_recommendations = len(results)
+  recommendations_cutoff = len(results) > MAX_FOR_EMAIL
+  results = results[:MAX_FOR_EMAIL]
+  for f in results:
+    for df in f['results']:
+      df['date'] = datetime.strptime(df['date'], "%Y-%m-%dT%H:%M:%S.%fZ")
+
+  tmpl_params = {
+    'base_url': base_url,
+    'user_alert_id': get(alert, 'user_alert_id'),
+    'user_email': get(alert, 'user_email'),
+    'user_uuid': get(alert, 'user_uuid'),
+    'city_id': get(alert, 'city_id'),
+    'city_name': get(alert, 'city_name'),
+    'weath_type': get(alert, 'weath_type'),
+    'max_drive_hours': get(alert, 'max_drive_minutes') / 60,
+    'wknds_only': get(alert, 'wknds_only'),
+    'cities_gained': [name for _, name in cities_gained],
+    'cities_lost': [name for _, name in cities_lost],
+    'recommendations_cutoff': recommendations_cutoff,
+    'total_recommendations': total_recommendations,
+    'recommendations': results,
+  }
+  fill_hrefs(tmpl_params)
+
+  return tmpls.render_alert_html(tmpl_params)
 
 
 def build_plaintext_email(today, cities, alert):
@@ -111,15 +140,16 @@ def build_plaintext_email(today, cities, alert):
     'city_name': get(alert, 'city_name'),
     'city_id': get(alert, 'city_id'),
     }
-  tmpl_params['href'] = '%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&weath_type=%(weath_type)s&emailAlert=true' % tmpl_params
-  tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(user_alert_id)s?userUUID=%(user_uuid)s' % tmpl_params
-  tmpl_params['manage_href'] = '%(base_url)s/user_alert/manage?userUUID=%(user_uuid)s' % tmpl_params
+  fill_hrefs(tmpl_params)
 
   return tmpl % tmpl_params
 
 
 def send_alert(today, cities, alert):
   html = build_html_email(today, cities, alert)
+  # tmptmp hihi rm me
+  with open('/Users/aodle/Desktop/tmp.html', 'w+') as f:
+    f.write(html)
   plain = build_plaintext_email(today, cities, alert)
 
   message = MIMEMultipart("alternative")
@@ -152,6 +182,7 @@ def process_alert(today, cities, alert):
         ''', (get(alert, 'user_alert_id'), today, get(alert, 'did_change'), get(alert, 'did_change')))
       except Exception as e:
         print 'FAILED TO SEND to: %s, %s' % (get(alert, 'user_email'), e)
+        import traceback; traceback.print_exc()
         cur.execute('''
           INSERT INTO user_alert_instance(user_alert_id, date, attempts, completed, sent_alert)
           VALUES(%s, %s, 1, FALSE, FALSE)

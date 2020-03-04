@@ -1,15 +1,16 @@
 #!/bin/python
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from datetime import date
 import os
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
 
 ASSET_URL = os.environ['ASSET_URL'] if 'ASSET_URL' in os.environ else os.environ['BASE_URL']
 
 env = Environment(
-    loader=FileSystemLoader('templates/'),
+    loader=FileSystemLoader('alerts/templates/'),
     autoescape=select_autoescape(['html'])
 )
+
 
 # TODO: consolidate (categorize in processing step?)
 def get_img(df):
@@ -22,8 +23,14 @@ def get_img(df):
     return ('sunny.png', 'sunny_30_30.png', 'Sunny')
 
 env.filters['img_alt'] = lambda df: get_img(df)[2]
-env.filters['img'] = lambda df: '%s/%s' % (ASSET_URL, get_img(df)[0])
-env.filters['img_small'] = lambda df: '%s/%s' % (ASSET_URL, get_img(df)[1])
+env.filters['img'] = lambda df: '%s/imgs/%s' % (ASSET_URL, get_img(df)[0])
+env.filters['img_small'] = lambda df: '%s/imgs/%s' % (ASSET_URL, get_img(df)[1])
+
+
+def mins_to_hours(m):
+  return m / 60
+env.filters['mins_to_hours'] = mins_to_hours
+
 
 def friendly_hours(h):
   if h < 1:
@@ -33,37 +40,19 @@ def friendly_hours(h):
   return '%s hours' % h
 env.filters['friendly_hours'] = friendly_hours
 
+
 VOWELS = set('aeiou8')
 env.filters['aOrAn'] = lambda nextWord: 'an' if str(nextWord)[0].lower() in VOWELS else 'a'
 
+
 DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 env.filters['weekday'] = lambda d: DAYS[d.weekday()]
+
 
 DAYS_SHORT = ['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun']
 env.filters['weekday_short'] = lambda d: DAYS_SHORT[d.weekday()]
 
 
-tmpl = env.get_template('forecast.html.jinja')
-print tmpl.render(
-    user_email='alex.odle@gmail.com',
-    weath_type='sunny',
-    drive_hours=6,
-    city_name='Seattle',
-    wknds_only=True,
-    href='https://hihi.dev.to/helloehlo?abc=hello_me&driveHours=6',
-    cities_gained=['hellos'],
-    recommendations_cutoff=True,
-    recommendations=[
-        {
-            'city_name': 'Spokane, WA',
-            'drive_hours': 4,
-            'daily_forecasts': [
-                {
-                    'date': date.today(),
-                    'maxtemp': 54,
-                    'rainpct': 19,
-                    'cloudcover': 75,
-                },
-            ]
-        },
-    ]).encode('utf-8')
+def render_alert_html(params):
+    tmpl = env.get_template('forecast.html.jinja')
+    return tmpl.render(params).encode('utf-8')
