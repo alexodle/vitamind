@@ -105,8 +105,23 @@
                         <h4 style="display:block;padding-top:0;margin-top:0;margin-bottom:10px;text-align:center;width:6em"
                             ><span class="full">{{df.date|weekday}}</span
                             ><span style="display:none" class="short">{{df.date|weekday_short}}</span></h4>
-                        <img alt="{{df|img_alt}}" src="{{df|img}}" style="display:inline-block;width:64px;height:64px" class="icon reg"
-                        /><img alt="{{df|img_alt}}" src="{{df|img_small}}" style="display:none" class="icon small" /><br/>{{df.maxtemp}}&deg;F</div>
+                        <img
+                            title="{{df|img_alt}}"
+                            alt="{{df|img_alt}}"
+                            src="{{df|img}}"
+                            style="display:inline-block;width:64px;height:64px"
+                            class="icon reg"
+                            width="64"
+                            height="64"
+                        /><img
+                            title="{{df|img_alt}}"
+                            alt="{{df|img_alt}}"
+                            src="{{df|img_small}}"
+                            style="display:none"
+                            class="icon small"
+                            width="30"
+                            height="30"
+                        /><br/>{{df.maxtemp}}&deg;F</div>
                 </td>
             {%- endfor -%}
             </tbody>
