@@ -46,7 +46,7 @@
 </head>
 
 <body style="font-family: Arial, Helvetica, sans-serif;">
-    <table class="container" style="margin: auto; width: 800px;" cellpadding="0" cellspacing="0" border="0"><tbody><tr><td>
+    <div class="container" style="margin: auto; width: 800px;" cellpadding="0" cellspacing="0" border="0">
     <h1 style="font-size:40px;font-style:italic;margin-top:0.67em;margin-bottom:0.67em;">VitaminD</h1>
 
     <div style="margin-bottom: 40px;">
@@ -94,9 +94,7 @@
     {%- endif -%}
     {%- for f in recommendations -%}
         <h3 style="margin-top:1em;margin-bottom:1em;">{{f.city.name}} ({{f.driveTimeMinutes|mins_to_hours|friendly_hours}})</h3>
-        <table cellpadding="0" cellspacing="0" border="0">
-            <tbody>
-            <tr>
+        <table cellpadding="0" cellspacing="0" border="0"><tbody><tr>
             {% for df in f.results %}
                 {% if loop.last %}
                 <td class='daily-forecast-li last' style="display:inline-block;margin-right:0;" }}>
@@ -136,9 +134,7 @@
                         /><br/>{{df.maxtemp}}&deg;F</div>
                 </td>
             {%- endfor -%}
-            </tbody>
-            </tr>
-        </table>
+        </tbody></tr></table>
     {%- endfor -%}
     {%- if recommendations_cutoff -%}
     <p style="margin-top:1em;margin-bottom:1em;"><a href='{{href}}'}>See all {{total_recommendations}} destinations on VitaminD</a><p>
@@ -150,7 +146,7 @@
     <div style="text-align:center;font-size:smaller;margin-top:20px;">
         <a href='{{unsub_href}}'>Unsubscribe from this alert</a> | <a href='{{manage_href}}'}>Manage my alerts</a>
     </div>
-    </td></tr></tbody></table>
+    </div>
 </body>
 
 </html>
