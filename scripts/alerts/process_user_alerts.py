@@ -147,9 +147,6 @@ def build_plaintext_email(today, cities, alert):
 
 def send_alert(today, cities, alert):
   html = build_html_email(today, cities, alert)
-  # tmptmp hihi rm me
-  with open('/Users/aodle/Desktop/tmp.html', 'w+') as f:
-    f.write(html)
   plain = build_plaintext_email(today, cities, alert)
 
   message = MIMEMultipart("alternative")
