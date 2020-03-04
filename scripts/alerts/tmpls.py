@@ -4,7 +4,7 @@ import os
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
-ASSET_URL = os.environ['ASSET_URL'] if 'ASSET_URL' in os.environ else os.environ['BASE_URL']
+ASSET_URL = os.environ['CDN_URL'] if 'CDN_URL' in os.environ else os.environ['BASE_URL']
 
 env = Environment(
     loader=FileSystemLoader('alerts/templates/'),
