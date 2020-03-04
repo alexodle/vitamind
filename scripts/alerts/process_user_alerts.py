@@ -18,6 +18,7 @@ email_host = os.environ['EMAIL_HOST']
 email_user = os.environ['EMAIL_USER']
 email_pw = os.environ['EMAIL_PW']
 email_from = os.environ['EMAIL_FROM']
+email_from_domain = os.environ['EMAIL_FROM_DOMAIN']
 
 server = smtplib.SMTP_SSL(email_host, 465)
 
@@ -121,7 +122,7 @@ def build_html_email(today, cities, alert):
   }
   fill_hrefs(tmpl_params)
 
-  return tmpls.render_alert_html(tmpl_params)
+  return tmpls.render_alert_html(tmpl_params), tmpl_params
 
 
 def build_plaintext_email(today, cities, alert):
@@ -142,16 +143,17 @@ def build_plaintext_email(today, cities, alert):
     }
   fill_hrefs(tmpl_params)
 
-  return tmpl % tmpl_params
+  return tmpl % tmpl_params, tmpl_params
 
 
 def send_alert(today, cities, alert):
-  html = build_html_email(today, cities, alert)
-  plain = build_plaintext_email(today, cities, alert)
+  html, _ = build_html_email(today, cities, alert)
+  plain, params = build_plaintext_email(today, cities, alert)
 
   message = MIMEMultipart("alternative")
+  message["List-Unsubscribe"] = params['unsub_href']
   message["Subject"] = 'VitaminD alert triggered'
-  message["From"] = '%s <%s>' % (EMAIL_DISPLAY_NAME, email_from)
+  message["From"] = 'alerts@%s <%s>' % (EMAIL_DISPLAY_NAME, email_from_domain)
   message["To"] = get(alert, 'user_email')
   message.attach(MIMEText(plain, "plain"))
   message.attach(MIMEText(html, "html"))
