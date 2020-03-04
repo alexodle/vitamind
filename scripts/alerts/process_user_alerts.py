@@ -72,6 +72,10 @@ Naviagte here to manage alerts: %(manage_href)s
 '''
 
 
+def is_weekend(d):
+  return d.weekday() >= 5
+
+
 def fill_hrefs(tmpl_params):
   tmpl_params['href'] = '%(base_url)s/forecast?cityID=%(city_id)s&driveHours=%(max_drive_hours)s&weathType=%(weath_type)s&emailAlert=true' % tmpl_params
   tmpl_params['unsub_href'] = '%(base_url)s/user_alert/unsubscribe/%(user_alert_id)s?userUUID=%(user_uuid)s' % tmpl_params
@@ -102,6 +106,8 @@ def build_html_email(today, cities, alert):
   for f in results:
     for df in f['results']:
       df['date'] = datetime.strptime(df['date'], "%Y-%m-%dT%H:%M:%S.%fZ")
+      df['recommended'] = df['isGoodDay'] if get(alert, 'weath_type') == 'sunny' else df['isWarmDay']
+      df['grayedOut'] = get(alert, 'wknds_only') and not is_weekend(df['date'])
 
   tmpl_params = {
     'base_url': base_url,
@@ -147,6 +153,9 @@ def build_plaintext_email(today, cities, alert):
 
 def send_alert(today, cities, alert):
   html, _ = build_html_email(today, cities, alert)
+  # tmptmp hihi
+  with open('/Users/aodle/Desktop/tmp.html', 'w+') as f:
+    f.write(html); import sys; sys.exit(1)
   plain, params = build_plaintext_email(today, cities, alert)
 
   message = MIMEMultipart("alternative")
