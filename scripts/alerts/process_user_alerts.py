@@ -17,8 +17,7 @@ base_url = os.environ['BASE_URL']
 email_host = os.environ['EMAIL_HOST']
 email_user = os.environ['EMAIL_USER']
 email_pw = os.environ['EMAIL_PW']
-email_from = os.environ['EMAIL_FROM']
-email_from_domain = os.environ['EMAIL_FROM_DOMAIN']
+email_from = os.environ['ALERTS_EMAIL_FROM']
 
 server = smtplib.SMTP_SSL(email_host, 465)
 
@@ -153,7 +152,7 @@ def send_alert(today, cities, alert):
   message = MIMEMultipart("alternative")
   message["List-Unsubscribe"] = params['unsub_href']
   message["Subject"] = 'VitaminD alert triggered'
-  message["From"] = 'alerts@%s <%s>' % (EMAIL_DISPLAY_NAME, email_from_domain)
+  message["From"] = '%s <%s>' % (EMAIL_DISPLAY_NAME, email_from)
   message["To"] = get(alert, 'user_email')
   message.attach(MIMEText(plain, "plain"))
   message.attach(MIMEText(html, "html"))
