@@ -28,7 +28,7 @@ env.filters['img_small'] = lambda df: '%s/imgs/%s' % (ASSET_URL, get_img(df)[1])
 
 
 def mins_to_hours(m):
-  return m / 60
+  return int(round(m / 60.0))
 env.filters['mins_to_hours'] = mins_to_hours
 
 
