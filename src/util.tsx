@@ -23,7 +23,7 @@ export const getToday = (): Date => {
   return new Date(newMillis)
 }
 
-export const isValidEmail = (email: string) => EMAIL_REGEX.test(email)
+export const isValidEmail = (email: string) => email && email.length > 3 && EMAIL_REGEX.test(email)
 
 export const isValidWeathType = (weathType: WeathType) => WEATH_TYPES.indexOf(weathType) !== -1
 

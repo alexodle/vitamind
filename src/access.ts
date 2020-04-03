@@ -7,7 +7,7 @@ import { InvalidRequestError, NotFoundError } from './errors'
 import { requireEnv } from './nodeUtils'
 import { City, ProcessedDailyForecast, ProcessedForecast, User, UserAlert, WeathType, UserAlertWithStatus } from './types'
 import { isValidWeathType, getToday, isValidEmail, isValidDriveHours, isWeekend } from './util'
-import { isBoolean } from 'util'
+import { isBoolean, isString } from 'util'
 
 const NDAYS = 6
 
@@ -52,6 +52,19 @@ async function buildProcessedForecasts(dateForecasted: Date, processedFcResults:
   }))
 
   return pfcs
+}
+
+export async function createCityRequest(city: string, email: string) {
+  if (!isString(city) || !city.length || !isValidEmail(email)) {
+    throw new InvalidRequestError('Invalid city or email')
+  }
+  const result = await pool.query(`
+    INSERT INTO city_request(city, email) VALUES($1, $2);
+    `, [city, email])
+  if (result.rowCount < 1) {
+    console.error(`Failed to add new city request: city:${city}, email:${email}`)
+    throw new Error('failed to add city')
+  }
 }
 
 export async function getUser(id: number): Promise<User> {

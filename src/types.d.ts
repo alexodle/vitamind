@@ -94,3 +94,8 @@ export interface GetUserAlertsResult {
   user: User
   userAlerts: UserAlert[]
 }
+
+export interface PostCityRequest {
+  city: string
+  email: string
+}

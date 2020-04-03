@@ -1,3 +1,4 @@
+import fetch from 'isomorphic-unfetch'
 import { NextPage, NextPageContext } from 'next'
 import Router from 'next/router'
 import { parseCookies, setCookie } from 'nookies'
@@ -6,21 +7,18 @@ import { DEFAULT_CITY, HARDCODED_DARK_CITIES } from '../gen/ts/db_constants'
 import { Layout } from '../src/components/Layout'
 import { DEFAULT_COOKIE_OPTIONS, DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
 import { WeathType } from '../src/types'
-import { isValidWeathType, parseBool } from '../src/util'
-import { isBoolean } from 'util'
+import { isValidEmail, isValidWeathType, parseBool } from '../src/util'
 
-export interface IndexProps {
-  defaultCityID?: number
-  defaultDriveHours?: number
-  defaultWeathType?: WeathType
-  defaultWkndsOnly?: boolean
+interface LongTooltipProps {
+  iconText?: string
 }
-
-const LongTooltip: FunctionComponent<{}> = ({ children }) => {
+const LongTooltip: FunctionComponent<LongTooltipProps> = ({ iconText, children }) => {
   const [show, setShow] = useState(false)
   return (
     <span className='tooltip'>
-      <i className='material-icons tooltip-icon' onClick={(e) => { e.preventDefault(); setShow(!show); }}>help_outline</i>
+      {iconText ?
+        <span className='tooltip-icon' onClick={(e) => { e.preventDefault(); setShow(!show); }}>{iconText}</span> :
+        <i className='material-icons tooltip-icon' onClick={(e) => { e.preventDefault(); setShow(!show); }}>help_outline</i>}
       <div className={`description ${show ? 'show' : ''}`}>{children}</div>
       <style jsx>{`
         .tooltip-icon {
@@ -45,7 +43,66 @@ const LongTooltip: FunctionComponent<{}> = ({ children }) => {
   )
 }
 
-const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, defaultWeathType, defaultWkndsOnly }) => {
+interface CityRequestFormProps {
+  defaultEmail: string | undefined
+}
+const CityRequestForm: FunctionComponent<CityRequestFormProps> = ({ defaultEmail = '' }) => {
+  const [city, setCity] = useState('')
+  const [email, setEmail] = useState(defaultEmail)
+  const [requested, setRequested] = useState(false)
+
+  const onSubmit = (ev: SyntheticEvent) => {
+    ev.preventDefault()
+    setRequested(true)
+
+    // fire and forget
+    fetch(`${process.env.BASE_URL}/api/city_request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ city, email }),
+    })
+  }
+
+  return (
+    <>
+      {requested ? <p>Thanks! Your request has been sent. We'll send you an email if your city is added.</p> : (
+        <>
+          <label htmlFor="city">Your city:<br />
+            <input name="city" placeholder="Pleasantville, IA" value={city} onChange={e => setCity(e.target.value)} />
+          </label>
+          <label htmlFor="email">Your email (we'll only email you if we actually add your city):<br />
+            <input name="email" type="email" placeholder="your.email@gmail.com" value={email} onChange={e => setEmail(e.target.value)} />
+          </label>
+          <button type="submit" disabled={city.length < 4 || !isValidEmail(email)} onClick={onSubmit}>Request my city</button>
+        </>
+      )}
+      <style jsx>
+        {`
+          button {
+            width: 100%;
+          }
+          label {
+            font-size: 110%;
+            font-weight: bold;
+          }
+          input {
+            margin-top: 10px;
+            width: 100%;
+          }
+        `}
+      </style>
+    </>
+  )
+}
+
+export interface IndexProps {
+  defaultCityID?: number
+  defaultDriveHours?: number
+  defaultWeathType?: WeathType
+  defaultWkndsOnly?: boolean
+  defaultEmail?: string
+}
+const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, defaultWeathType, defaultWkndsOnly, defaultEmail }) => {
   const [cityID, setCityID] = useState((defaultCityID || DEFAULT_CITY).toString())
   const [driveHours, setDriveHours] = useState((defaultDriveHours || DEFAULT_DRIVE_HOURS).toString())
   const [weathType, setWeathType] = useState<WeathType>(defaultWeathType || 'sunny')
@@ -70,7 +127,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
     <Layout>
       <section>
         <form className='index-form'>
-          <label htmlFor='cityID'>Where do you live? (more cities coming soon!)
+          <label htmlFor='cityID'>Where do you live? {' '}<LongTooltip iconText="(Your city isn't listed? Tell us!)"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip>
             <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
               {HARDCODED_DARK_CITIES.map(([name, cid]) =>
                 <option key={cid} value={cid.toString()}>{name}</option>
@@ -109,45 +166,25 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
             <input id='wkndsOnly' name='wkndsOnly' type='checkbox' checked={wkndsOnly} onChange={ev => setWkndsOnly(!!ev.target.checked)} disabled={isQuerying} />
             {' '}Weekends only?
           </label>
-          <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>VitaminD please</button>
+          <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>Get That Vitamin D</button>
         </form>
       </section>
       <section>
-        <h2>What is VitaminD?</h2>
+        <h2 className='section-header'>What is Get That Vitamin D?</h2>
         <p>
-          VitaminD helps you find sun within driving distance. Tell us where you live and how far you're willing to drive{' '}
+          VitaminD helps you find sunny weather within driving distance. Tell us where you live and how far you're willing to drive,{' '}
           and we'll show you fun cities you can visit that are forecasted to get sun in the next 6 days.
         </p>
       </section>
       <section>
-        <h2>Your city isn't listed?</h2>
-        <p>Check back soon. We're adding more cities every day.</p>
+        <h2 className='section-header'>Coverage map</h2>
+        VitaminD currently targets the greater PNW. <LongTooltip iconText="If you think we should add your city, tell us!"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip><br /><br />
         <figure>
           <iframe className='gmaps-iframe' src="https://www.google.com/maps/d/embed?mid=1QNbxhPjW0O_lLzKbg7J0YZZYR5X8Qp05&hl=en" />
-          <figcaption>Coverage as of <b>02-07-2020</b></figcaption>
+          <figcaption>Coverage as of <b>03-02-2020</b></figcaption>
         </figure>
       </section>
       <style jsx>{`
-        label {
-          display: block;
-          margin-bottom: 20px;
-        }
-        select, button.submit {
-          margin-top: 10px;
-          width: 100%;
-        }
-        select {
-          display: block;
-          font-size: large;
-        }
-        button.submit {
-          font-size: large;
-          background-color: #e0e0e0;
-          border: gray 1px solid;
-          border-radius: 10px;
-          padding: 10px;
-          cursor: pointer;
-        }
         figure {
           margin: 0;
         }
@@ -171,8 +208,6 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
         }
         .prop {
           font-weight: bolder;
-        }
-        .descrip {
         }
         .caveats {
           margin-bottom: 0;
@@ -203,6 +238,10 @@ Index.getInitialProps = (ctx: NextPageContext): IndexProps => {
 
   if (cookies.defaultWkndsOnly !== undefined) {
     result.defaultWkndsOnly = parseBool(cookies.defaultWkndsOnly)
+  }
+
+  if (isValidEmail(cookies.email)) {
+    result.defaultEmail = cookies.email
   }
 
   return result

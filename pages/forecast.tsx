@@ -9,6 +9,7 @@ import { Layout } from '../src/components/Layout'
 import { CSS_MEDIA_PHONE, DEFAULT_COOKIE_OPTIONS, MAX_DRIVE_MINUTES } from '../src/constants'
 import { City, ProcessedDailyForecast, ProcessedForecast, WeathResult, WeathType } from '../src/types'
 import { aOrAn, capitalizeFirst, friendlyDay, friendlyHoursText, friendlyTemp, getWeatherImgs, isValidEmail, isWeekend } from '../src/util'
+import { Colors } from '../src/components/colors'
 
 export interface SearchCriteriaProps {
   capitalize?: boolean
@@ -61,7 +62,6 @@ export const DailyForecastContainer: FunctionComponent<DailyForecastContainerPro
   return (
     <div className='container' style={{
       padding: '10px',
-      border: 'gray 1px solid',
       borderRadius: '10px',
       textAlign: 'center',
 
@@ -70,6 +70,10 @@ export const DailyForecastContainer: FunctionComponent<DailyForecastContainerPro
     }}>
       {children}
       <style jsx>{`
+      .container {
+        background-color: white;
+        box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);
+      }
       @media ${CSS_MEDIA_PHONE} {
         .container {
           padding-left: 5px !important;
@@ -227,10 +231,6 @@ const ForecastsView: FunctionComponent<ForecastProps> = ({ driveHoursRequested, 
       <style jsx>{`
         .section-header {
           font-weight: normal;
-          font-size: larger;
-          border-bottom: 1px solid gray;
-          padding-bottom: 15px;
-          margin-bottom: 30px;
         }
       `}</style>
     </Fragment>
@@ -283,14 +283,14 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
           type='submit'
           onClick={onSetAlert}
           disabled={isSubmitting || !isValidEmail(alertEmail)}
-        >Set alert</button>
+        >Create alert</button>
         <style jsx>{`
-        .alert-form label {
-          display: inline-block
-        }
-        .alert-form button {
-          display: inline-block
-        }
+          .alert-form label {
+            display: inline-block
+          }
+          .alert-form button {
+            display: inline-block
+          }
         `}</style>
       </form>
     )
