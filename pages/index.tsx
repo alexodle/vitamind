@@ -124,7 +124,7 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
   }
 
   return (
-    <Layout>
+    <Layout includeAnalytics>
       <section>
         <div className='city-req'><LongTooltip iconText="Your city isn't listed? Tell us!"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip></div>
         <form className='index-form'>

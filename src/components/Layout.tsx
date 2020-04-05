@@ -3,7 +3,24 @@ import Link from "next/link";
 import { FunctionComponent } from "react";
 import { Colors } from "./colors";
 
-export const Layout: FunctionComponent<{}> = ({ children }) => (
+const G_ANALYTICS_RAW_JS = `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '${process.env.G_ANALYTICS_UID}');
+`
+
+const GoogleAnalytics: FunctionComponent = () => (
+  <>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-162875180-1" />
+    <script dangerouslySetInnerHTML={{ __html: G_ANALYTICS_RAW_JS }} />
+  </>
+)
+
+export interface LayoutProps {
+  includeAnalytics?: boolean
+}
+export const Layout: FunctionComponent<LayoutProps> = ({ includeAnalytics, children }) => (
   <>
     <Head key='layout-head'>
       <title>Get That Vitamin D - find sunny weather within driving distance</title>
@@ -17,6 +34,7 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
         content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
       />
       <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+      {includeAnalytics ? <GoogleAnalytics /> : undefined}
     </Head>
     <header>
       <div className='container'>

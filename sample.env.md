@@ -13,4 +13,6 @@ export EMAIL_HOST='...'
 export EMAIL_USER='...'
 export EMAIL_PW='...'
 export EMAIL_FROM='...'
+
+export G_ANALYTICS_UID=''
 ```

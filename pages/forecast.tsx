@@ -339,7 +339,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
   )
 
   return (
-    <Layout>
+    <Layout includeAnalytics>
       {renderAlertSubmitResult()}
       <section>
         <Link href="/"><a>Change your search</a></Link>
