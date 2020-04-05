@@ -34,7 +34,7 @@ export const Layout: FunctionComponent<LayoutProps> = ({ includeAnalytics, child
         content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
       />
       <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-      {includeAnalytics ? <GoogleAnalytics /> : undefined}
+      {process.env.NODE_ENV === 'production' && includeAnalytics ? <GoogleAnalytics /> : undefined}
     </Head>
     <header>
       <div className='container'>
