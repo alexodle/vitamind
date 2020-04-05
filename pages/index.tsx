@@ -173,13 +173,13 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
       <section>
         <h2 className='section-header'>What is Get That Vitamin D?</h2>
         <p>
-          VitaminD helps you find sunny weather within driving distance. Tell us where you live and how far you're willing to drive,{' '}
+          Get That Vitamin D helps you find sunny weather within driving distance. Tell us where you live and how far you're willing to drive,{' '}
           and we'll show you fun cities you can visit that are forecasted to get sun in the next 6 days.
         </p>
       </section>
       <section>
         <h2 className='section-header'>Coverage map</h2>
-        VitaminD currently targets the greater PNW. <LongTooltip iconText="If you think we should add your city, tell us!"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip><br /><br />
+        Get That Vitamin D currently targets the greater PNW. <LongTooltip iconText="If you think we should add your city, tell us!"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip><br /><br />
         <figure>
           <iframe className='gmaps-iframe' src="https://www.google.com/maps/d/embed?mid=1QNbxhPjW0O_lLzKbg7J0YZZYR5X8Qp05&hl=en" />
           <figcaption>Coverage as of <b>03-02-2020</b></figcaption>

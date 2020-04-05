@@ -7,8 +7,8 @@ import { User, UserConf } from './types';
 // Users have GRACE_TIME_MINS to confirm email
 const GRACE_TIME_MINS = 10
 
-const EMAIL_SUBJECT = 'VitaminD - confirm your email'
-const EMAIL_DISPLAY_NAME = 'VitaminD'
+const EMAIL_SUBJECT = 'Get That Vitamin D - confirm your email'
+const EMAIL_DISPLAY_NAME = 'Get That Vitamin D'
 const EMAIL_FROM = requireEnv('EMAIL_FROM')
 
 const mailer = nodemailer.createTransport({
@@ -24,19 +24,19 @@ const mailer = nodemailer.createTransport({
 const buildHTMLEmail = (user: User, userConf: UserConf) => `<html>
 <body>
 <p>${user.email},<br /><br />
-You signed up to get alerts from VitaminD.
+You signed up to get alerts from Get That Vitamin D.
 <br /><br />
 <a href="${process.env.BASE_URL}/user/confirm/${userConf.conf_id}">Click here to confirm your email and start receiving those alerts.</a></p>
 <br/>
-- VitaminD
+- Your friends at get that Vitamin D
 </body>
 </html>`
 
 const buildTextEmail = (user: User, userConf: UserConf) => `${user.email},
-You signed up to get alerts from VitaminD.
+You signed up to get alerts from Get That Vitamin D.
 Navigate to the following URL to confirm your email: ${process.env.BASE_URL}/user/confirm/${userConf.conf_id}
 
-- VitaminD
+- Your friends at get that Vitamin D
 `
 
 async function getUserIDByConfirmationUUID(confirmationUUID: string): Promise<number> {
