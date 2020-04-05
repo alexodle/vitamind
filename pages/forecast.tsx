@@ -278,7 +278,7 @@ const Forecast: NextPage<ForecastProps> = (props: ForecastProps) => {
       <form className='alert-form'>
         <label htmlFor='email'>Enter your email:{' '}
           <input autoFocus type='email' name='email' id='email' value={alertEmail} onChange={e => setAlertEmail(e.target.value)} disabled={isSubmitting} />
-        </label>
+        </label>-=
         {' '}<button
           type='submit'
           onClick={onSetAlert}

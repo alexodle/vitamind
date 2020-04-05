@@ -68,6 +68,8 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
       @media only screen and (max-width: 812px) {
         .container {
           width: 100%;
+          padding-left: 10px;
+          padding-right: 10px;
         }
       }
     `}</style>
@@ -129,6 +131,7 @@ export const Layout: FunctionComponent<{}> = ({ children }) => (
       }
       button:disabled {
         cursor: initial;
+        filter: brightness(50%);
       }
     `}</style>
   </>

@@ -66,15 +66,15 @@ const CityRequestForm: FunctionComponent<CityRequestFormProps> = ({ defaultEmail
   return (
     <>
       {requested ? <p>Thanks! Your request has been sent. We'll send you an email if your city is added.</p> : (
-        <>
+        <form onSubmit={onSubmit}>
           <label htmlFor="city">Your city:<br />
             <input name="city" placeholder="Pleasantville, IA" value={city} onChange={e => setCity(e.target.value)} />
           </label>
           <label htmlFor="email">Your email (we'll only email you if we actually add your city):<br />
             <input name="email" type="email" placeholder="your.email@gmail.com" value={email} onChange={e => setEmail(e.target.value)} />
           </label>
-          <button type="submit" disabled={city.length < 4 || !isValidEmail(email)} onClick={onSubmit}>Request my city</button>
-        </>
+          <button type="submit" disabled={city.length < 4 || !isValidEmail(email)}>Request my city</button>
+        </form>
       )}
       <style jsx>
         {`
@@ -126,8 +126,9 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
   return (
     <Layout>
       <section>
+        <div className='city-req'><LongTooltip iconText="Your city isn't listed? Tell us!"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip></div>
         <form className='index-form'>
-          <label htmlFor='cityID'>Where do you live? {' '}<LongTooltip iconText="(Your city isn't listed? Tell us!)"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip>
+          <label htmlFor='cityID'>Where do you live? {' '}
             <select id='cityID' name='cityID' value={cityID} onChange={ev => setCityID(ev.target.value)} disabled={isQuerying}>
               {HARDCODED_DARK_CITIES.map(([name, cid]) =>
                 <option key={cid} value={cid.toString()}>{name}</option>
@@ -211,6 +212,9 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
         }
         .caveats {
           margin-bottom: 0;
+        }
+        .city-req {
+          margin-bottom: 20px;
         }
       `}</style>
     </Layout>
