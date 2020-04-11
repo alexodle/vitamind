@@ -49,14 +49,14 @@ def get(row, col):
   return row[idx]
 
 
-EMAIL_DISPLAY_NAME = 'Get That Vitamin D'
+EMAIL_DISPLAY_NAME = 'Get Some Vitamin D'
 
 GAINED_CITIES_EMAIL_TMPL_PLAIN = '''\
 %(email)s,
-You have new opportunities for Vitamin D within a %(max_drive_hours)s hour drive of %(city_name)s.
+You have new opportunities to get some Vitamin D within a %(max_drive_hours)s hour drive of %(city_name)s.
 Check them out here: %(href)s
 
-- Your friends at Get That Vitamin D
+- Your friends at Get Some Vitamin D
 
 Naviagte here to manage alerts: %(manage_href)s
 '''
@@ -66,7 +66,7 @@ LOST_CITIES_EMAIL_TMPL_PLAIN = '''\
 We detected fewer opportunities than you had yesterday for Vitamin D within a %(max_drive_hours)s hour drive of %(city_name)s.
 Check them out here to make sure you don't need to change your plans: %(href)s
 
-- Your friend at Get That Vitamin D
+- Your friend at Get Some Vitamin D
 
 Naviagte here to manage alerts: %(manage_href)s
 '''
@@ -157,7 +157,7 @@ def send_alert(today, cities, alert):
 
   message = MIMEMultipart("alternative")
   message["List-Unsubscribe"] = params['unsub_href']
-  message["Subject"] = 'Get That Vitamin D alert triggered'
+  message["Subject"] = 'Get Some Vitamin D alert triggered'
   message["From"] = '%s <%s>' % (EMAIL_DISPLAY_NAME, email_from)
   message["To"] = get(alert, 'user_email')
   message.attach(MIMEText(plain, "plain"))

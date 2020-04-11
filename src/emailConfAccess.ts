@@ -3,12 +3,13 @@ import { pool, getUser } from './access';
 import { InvalidRequestError, NotFoundError } from './errors';
 import { requireEnv } from './nodeUtils';
 import { User, UserConf } from './types';
+import { BRAND } from './constants';
 
 // Users have GRACE_TIME_MINS to confirm email
 const GRACE_TIME_MINS = 10
 
-const EMAIL_SUBJECT = 'Get That Vitamin D - confirm your email'
-const EMAIL_DISPLAY_NAME = 'Get That Vitamin D'
+const EMAIL_SUBJECT = `${BRAND} - confirm your email`
+const EMAIL_DISPLAY_NAME = BRAND
 const EMAIL_FROM = requireEnv('EMAIL_FROM')
 
 const mailer = nodemailer.createTransport({
@@ -24,19 +25,19 @@ const mailer = nodemailer.createTransport({
 const buildHTMLEmail = (user: User, userConf: UserConf) => `<html>
 <body>
 <p>${user.email},<br /><br />
-You signed up to get alerts from Get That Vitamin D.
+You signed up to get alerts from ${BRAND}.
 <br /><br />
 <a href="${process.env.BASE_URL}/user/confirm/${userConf.conf_id}">Click here to confirm your email and start receiving those alerts.</a></p>
 <br/>
-- Your friends at get that Vitamin D
+- Your friends at ${BRAND}
 </body>
 </html>`
 
 const buildTextEmail = (user: User, userConf: UserConf) => `${user.email},
-You signed up to get alerts from Get That Vitamin D.
+You signed up to get alerts from ${BRAND}.
 Navigate to the following URL to confirm your email: ${process.env.BASE_URL}/user/confirm/${userConf.conf_id}
 
-- Your friends at get that Vitamin D
+- Your friends at ${BRAND}
 `
 
 async function getUserIDByConfirmationUUID(confirmationUUID: string): Promise<number> {

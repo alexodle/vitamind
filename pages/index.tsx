@@ -5,7 +5,7 @@ import { parseCookies, setCookie } from 'nookies'
 import { FunctionComponent, SyntheticEvent, useState } from 'react'
 import { DEFAULT_CITY, HARDCODED_DARK_CITIES } from '../gen/ts/db_constants'
 import { Layout } from '../src/components/Layout'
-import { DEFAULT_COOKIE_OPTIONS, DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS } from '../src/constants'
+import { DEFAULT_COOKIE_OPTIONS, DEFAULT_DRIVE_HOURS, VALID_DRIVE_HOURS, BRAND } from '../src/constants'
 import { WeathType } from '../src/types'
 import { isValidEmail, isValidWeathType, parseBool } from '../src/util'
 
@@ -167,19 +167,19 @@ const Index: NextPage<IndexProps> = ({ defaultCityID, defaultDriveHours, default
             <input id='wkndsOnly' name='wkndsOnly' type='checkbox' checked={wkndsOnly} onChange={ev => setWkndsOnly(!!ev.target.checked)} disabled={isQuerying} />
             {' '}Weekends only?
           </label>
-          <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>Get That Vitamin D</button>
+          <button className='submit' type='submit' onClick={onSubmit} disabled={isQuerying}>{BRAND}</button>
         </form>
       </section>
       <section>
-        <h2 className='section-header'>What is Get That Vitamin D?</h2>
+        <h2 className='section-header'>What is {BRAND}?</h2>
         <p>
-          Get That Vitamin D helps you find sunny weather within driving distance. Tell us where you live and how far you're willing to drive,{' '}
+          {BRAND} helps you find sunny weather within driving distance. Tell us where you live and how far you're willing to drive,{' '}
           and we'll show you fun cities you can visit that are forecasted to get sun in the next 6 days.
         </p>
       </section>
       <section>
         <h2 className='section-header'>Coverage map</h2>
-        Get That Vitamin D currently targets the greater PNW. <LongTooltip iconText="If you think we should add your city, tell us!"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip><br /><br />
+        {BRAND} currently targets the greater PNW. <LongTooltip iconText="If you think we should add your city, tell us!"><CityRequestForm defaultEmail={defaultEmail} /></LongTooltip><br /><br />
         <figure>
           <iframe className='gmaps-iframe' src="https://www.google.com/maps/d/embed?mid=1QNbxhPjW0O_lLzKbg7J0YZZYR5X8Qp05&hl=en" />
           <figcaption>Coverage as of <b>03-02-2020</b></figcaption>
