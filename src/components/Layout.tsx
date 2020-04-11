@@ -50,25 +50,31 @@ export const Layout: FunctionComponent<LayoutProps> = ({ includeAnalytics, child
     </footer>
 
     <style jsx>{`
-      {/* .outer-container {
+      .outer-container {
         height: 100vh;
-        display: flex;
-        flex-direction: column;
-      } */}
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+
       .container {
         margin: 0 auto;
         width: 800px;
       }
-      {/* .container.content {
-        flex-grow: 1px;
-      } */}
 
       header {
-        margin-bottom: 30px;
-        margin-top: 0;
-        padding-top: 30px;
         background-color: ${Colors.primary};
+        margin: 0;
+        padding: 0;
+        margin-bottom: 30px;
+        padding-top: 30px;
         width: 100%;
+      }
+
+      footer {
+        background-color: ${Colors.primary};
+        margin: 0;
+        padding: 0;
+        text-align: center;
       }
 
       .logo {
@@ -79,17 +85,6 @@ export const Layout: FunctionComponent<LayoutProps> = ({ includeAnalytics, child
       a.unstyled {
         text-decoration: none;
         color: inherit;
-      }
-
-      footer {
-        background-color: ${Colors.primary};
-        margin: 0;
-        padding: 0;
-        text-align: center;
-      }
-      footer p {
-        padding-top:10px;
-        padding-bottom: 20px;
       }
 
       @media only screen and (max-width: 812px) {
@@ -145,9 +140,9 @@ export const Layout: FunctionComponent<LayoutProps> = ({ includeAnalytics, child
         font-size: large;
       }
       button.submit, button[type=submit] {
+        position: relative;
         font-size: large;
-        background-color: ${Colors.secondary};
-        color: white;
+        background-color: ${Colors.accent2};
         border: gray 1px solid;
         border-radius: 10px;
         padding: 10px;
@@ -158,7 +153,17 @@ export const Layout: FunctionComponent<LayoutProps> = ({ includeAnalytics, child
       }
       button:disabled {
         cursor: initial;
-        filter: brightness(50%);
+      }
+      button:disabled:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: gray;
+        opacity: 0.2;
+        border-radius: 10px;
       }
     `}</style>
   </div>
